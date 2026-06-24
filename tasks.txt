@@ -1,0 +1,24 @@
+1. Authentication & Account Access
+- Build login and registration pages.
+- Add form validation, error handling, and session persistence.
+- Protect private routes for authenticated users.
+
+2. Event Discovery & Browsing
+- Create the main events listing page with search and filtering.
+- Add event cards and a dedicated event details page.
+- Show event metadata such as date, location, and description.
+
+3. Event Booking & Attendee Management
+- Let users book or join events.
+- Display attendee lists for each event.
+- Allow organizers to add or remove attendees.
+
+4. Event Creation & Editing
+- Build create event and edit event forms.
+- Support validation for required fields and date/time inputs.
+- Let event owners update or delete their events.
+
+5. UI Polish & Application Quality
+- Improve layout, navigation, and responsive design.
+- Add loading states, empty states, and reusable feedback components.
+- Test key user flows and fix compile/runtime issues.
