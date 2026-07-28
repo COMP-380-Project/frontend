@@ -8,7 +8,7 @@ export const fetchUserEvents = async (userId: number | undefined): Promise<Event
 
     try {
         const response = await apiFetch(
-            `${API_BASE_URL}/v1/attendees/${userId}/events`
+            `${API_BASE_URL}/attendees/${userId}/events`
         );
 
         if(!response.ok) {
@@ -25,7 +25,7 @@ export const fetchUserEvents = async (userId: number | undefined): Promise<Event
 export const fetchEventAttendees = async (eventId: number): Promise<User[]> => {
     try {
         const response = await apiFetch(    
-            `${API_BASE_URL}/v1/events/${eventId}/attendees`
+            `${API_BASE_URL}/events/${eventId}/attendees`
         );
 
         if(!response.ok) {
@@ -45,7 +45,7 @@ export const addAttendeeToEvent = async (
 ): Promise<void> => {
     try {
         const response = await apiFetch(
-            `${API_BASE_URL}/v1/events/${eventId}/attendees/${userId}`,
+            `${API_BASE_URL}/events/${eventId}/attendees/${userId}`,
             {method: "POST"}
         );
 
@@ -65,7 +65,7 @@ export const removeAttendeeFromEvent = async (
 ): Promise<void> => {
     try {
         const response = await apiFetch(
-            `${API_BASE_URL}/v1/events/${eventId}/attendees/${userId}`,
+            `${API_BASE_URL}/events/${eventId}/attendees/${userId}`,
             {method: "DELETE"}
         );
 
