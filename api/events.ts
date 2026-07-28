@@ -3,7 +3,7 @@ import {API_BASE_URL, apiFetch} from "./api"
 
 export const fetchEvents = async (): Promise<EventData[]> => {
     try {
-        const response = await apiFetch(`${API_BASE_URL}/v1/events`);
+        const response = await apiFetch(`${API_BASE_URL}/events`);
 
         if(!response.ok) {
             throw new Error(`APi error: ${response.status}`);
@@ -19,7 +19,7 @@ export const fetchEvents = async (): Promise<EventData[]> => {
 export const createEvent = async (event: Omit<EventData, "id" | "ownerId">
 ): Promise<EventData> => {
     try {
-        const response = await apiFetch(`${API_BASE_URL}/v1/events`, {
+        const response = await apiFetch(`${API_BASE_URL}/events`, {
             method: "POST",
             body: JSON.stringify(event),
         });
@@ -37,7 +37,7 @@ export const createEvent = async (event: Omit<EventData, "id" | "ownerId">
 
 export const deleteEvent = async (eventId: number): Promise<void> => {
     try {
-        const response = await apiFetch(`${API_BASE_URL}/v1/events/${eventId}`, {
+        const response = await apiFetch(`${API_BASE_URL}/events/${eventId}`, {
             method: "DELETE",
         });
 
@@ -52,7 +52,7 @@ export const deleteEvent = async (eventId: number): Promise<void> => {
 
 export const fetchEventById = async (eventId: number): Promise<EventData> => {
     try {
-        const response = await apiFetch(`${API_BASE_URL}/v1/events/${eventId}`, {});
+        const response = await apiFetch(`${API_BASE_URL}/events/${eventId}`, {});
 
         if(!response.ok) {
             throw new Error(`APi error: ${response.status}`);
@@ -70,8 +70,8 @@ export const updateEvent = async (
     eventData: Omit<EventData, "id" | "attendees" | "ownerId">
 ): Promise<EventData> => {
     try {
-        const response = await apiFetch(`${API_BASE_URL}/v1/events/${eventId}`, {
-            method: "PUT",
+        const response = await apiFetch(`${API_BASE_URL}/events/${eventId}`, {
+            method: "PATCH",
             body: JSON.stringify(eventData),
         });
 
