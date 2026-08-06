@@ -39,9 +39,20 @@ export const fetchMovieById = async (movieId: number): Promise<MovieData> => {
 
 export const fetchBookedSeats = async (movieId: number): Promise<string[]> => {
     const db = await loadDb();
-    return db.bookings
-        .filter(booking => booking.movieId === movieId && booking.status !== "cancelled")
+
+    const confirmedSeats = db.bookings
+        .filter(
+            booking =>
+                booking.movieId === movieId &&
+                booking.status !== "cancelled"
+        )
         .map(booking => booking.seatNumber);
+
+    const seatsInCart = db.cartItems
+        .filter(item => item.movieId === movieId)
+        .map(item => item.seatNumber);
+
+    return [...new Set([...confirmedSeats, ...seatsInCart])];
 };
 
 export const fetchUserTickets = async (userId: number | undefined): Promise<MovieTicket[]> => {
