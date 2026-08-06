@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Erling Haaland",
+    "email": "erlinghaaland@example.com",
+    "password": "123456",
+    "role": "customer"
+  },
+  {
+    "id": 2,
+    "name": "Cinema Manager",
+    "email": "manager@example.com",
+    "password": "manager123",
+    "role": "manager"
+  }
+]

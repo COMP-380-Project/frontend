@@ -27,7 +27,7 @@ export function InputGroup({
     return (
         
     <div className={className}>
-        <label htmlFor={name} className="mb-1 block text-sm font-medium text-gray-700"
+        <label htmlFor={name} className="mb-1 block text-sm font-medium text-slate-200"
         >
             {label}
         </label>
@@ -38,11 +38,11 @@ export function InputGroup({
             onChange={onChange} 
             rows={isTextArea ? rows : undefined} 
             type={isTextArea ? undefined : type}
-            className={`w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                error ? "border-red-500" : "border-gray-300"
+            className={`w-full rounded-lg border bg-slate-950/70 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:border-amber-300 focus:outline-none focus:ring-2 focus:ring-amber-300/30 ${
+                error ? "border-rose-400" : "border-slate-700"
                 }`}
         />
-        {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-1 text-sm text-rose-300">{error}</p>}
     </div>
     )
     

@@ -4,43 +4,89 @@ import {
     Route,
     Navigate
   } from "react-router-dom";
-import {EventsPage} from "../pages/EventsPage";
-import {MyEventsPage} from "../pages/MyEventsPage";
+import type {ReactNode} from "react";
+import {MoviesPage} from "../pages/MoviesPage";
+import {BookingsPage} from "../pages/BookingsPage";
 import {LoginPage} from "../pages/LoginPage";
 import {RegisterPage} from "../pages/RegisterPage";
-import {EventDetailsPage} from "../pages/EventDetailsPage";
-import {EditEventsPage} from "../pages/EditEventsPage";
+import {MovieDetailsPage} from "../pages/MovieDetailsPage";
+import {CartPage} from "../pages/CartPage";
+import {ReportsPage} from "../pages/ReportsPage";
 import {Header} from "../components/header/Header";
 import {AuthProvider} from "../contexts/AuthProvider";
 import {ProtectedRoute} from "../components/ProtectedRoute";
+import {useAuth} from "../contexts/AuthContext";
+
+function ManagerRoute({children}: {children: ReactNode}) {
+    const {auth} = useAuth();
+
+    if (auth?.role !== "manager") {
+        return <Navigate to="/movies" replace />;
+    }
+
+    return <>{children}</>;
+}
 
 function App() {
   return (
     <AuthProvider>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen app-bg">
             <Router>
                 <Header />
-                <main className="container mx-auto p-8">
+                <main className="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-10">
                     <Routes>
-                        <Route path="/" element={<EventsPage />} />
-                        <Route path="/my-events" 
+                        <Route
+                            path="/"
+                            element={
+                                <ProtectedRoute>
+                                    <MoviesPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/movies/:movieId"
+                            element={
+                                <ProtectedRoute>
+                                    <MovieDetailsPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route path="/movies" 
                         element={
                         <ProtectedRoute>
-                            <MyEventsPage />
+                            <MoviesPage />
                         </ProtectedRoute>
                     }
                 />
-                        <Route path="/events/:eventId" element={<EventDetailsPage />} />
-                        <Route path="/events/:eventId/edit"
-                         element={
-                            <ProtectedRoute>
-                                <EditEventsPage />
-                            </ProtectedRoute>
-                        }
-                    />
+                        <Route
+                            path="/cart"
+                            element={
+                                <ProtectedRoute>
+                                    <CartPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/bookings"
+                            element={
+                                <ProtectedRoute>
+                                    <BookingsPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/reports"
+                            element={
+                                <ProtectedRoute>
+                                    <ManagerRoute>
+                                        <ReportsPage />
+                                    </ManagerRoute>
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
+                        <Route path="*" element={<Navigate to="/movies" replace />} />
                     </Routes>
                 </main>
             </Router>

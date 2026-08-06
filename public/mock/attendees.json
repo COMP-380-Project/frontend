@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "eventId": 1,
+    "userId": 1,
+    "seatNumber": "C7",
+    "bookedAt": "2026-08-01T13:40:00.000Z"
+  },
+  {
+    "id": 2,
+    "eventId": 2,
+    "userId": 1,
+    "seatNumber": "D4",
+    "bookedAt": "2026-08-02T09:22:00.000Z"
+  }
+]

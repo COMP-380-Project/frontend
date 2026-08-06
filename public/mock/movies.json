@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "name": "The Odyssey",
+    "description": "After the Trojan War, Odysseus faces a dangerous voyage back to Ithaca, meeting creatures like the Cyclops Polyphemus, Sirens, and Calypso along the way.",
+    "date": "2026-09-04T19:00:00",
+    "location": "AMC Northridge - Theater 3",
+    "ownerId": 2,
+    "posterUrl": "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=800&q=80",
+    "genre": "Epic Adventure",
+    "durationMinutes": 142,
+    "rating": "PG-13",
+    "language": "English",
+    "price": 14.5
+  },
+  {
+    "id": 2,
+    "name": "Moana",
+    "description": "Live-action adaptation of the 2016 Disney animated film 'Moana.'",
+    "date": "2026-09-04T21:30:00",
+    "location": "AMC Northridge - Theater 2",
+    "ownerId": 2,
+    "posterUrl": "https://images.unsplash.com/photo-1460881680858-30d872d5b530?auto=format&fit=crop&w=800&q=80",
+    "genre": "Family Fantasy",
+    "durationMinutes": 118,
+    "rating": "PG",
+    "language": "English",
+    "price": 12.99
+  },
+  {
+    "id": 3,
+    "name": "Minions & Monsters",
+    "description": "Follows the Minions in 1920s Hollywood as they search for frightening creatures for their monster movie, partner with a green creature, and must save the planet after unleashing monsters.",
+    "date": "2026-09-04T18:15:00",
+    "location": "AMC Burbank - Theater 1",
+    "ownerId": 2,
+    "posterUrl": "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=800&q=80",
+    "genre": "Animation Comedy",
+    "durationMinutes": 105,
+    "rating": "PG",
+    "language": "English",
+    "price": 11.5
+  },
+  {
+    "id": 4,
+    "name": "Toy Story 5",
+    "description": "Woody, Buzz, Jessie and the rest of the gang's jobs are challenged when they're introduced to electronics, a new threat to playtime.",
+    "date": "2026-09-04T20:45:00",
+    "location": "AMC Burbank - Theater 8",
+    "ownerId": 2,
+    "posterUrl": "https://images.unsplash.com/photo-1440404653325-ab127d49abc1?auto=format&fit=crop&w=800&q=80",
+    "genre": "Animation",
+    "durationMinutes": 121,
+    "rating": "PG",
+    "language": "English",
+    "price": 13.25
+  }
+]

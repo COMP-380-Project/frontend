@@ -31,7 +31,10 @@ export function RegisterPage() {
     };
 
     const onSubmit = async ({name, email, password}: RegisterFormData) => {
-        await register(name, email, password);
+      const user = await register(name, email, password);
+      if (!user) {
+        throw new Error("This email is already in use");
+      }
         navigate("/login");
     };
 
@@ -43,8 +46,9 @@ export function RegisterPage() {
 
     return (
     <div className="mx-auto max-w-md">
-        <div className="rounded-lg bg-white p-6 shadow-md">
-            <h2 className="mb-6 text-2xl font-semibold text-gray-800">Register</h2>
+      <div className="rounded-3xl border border-white/10 bg-slate-900/75 p-8 shadow-2xl shadow-black/30">
+        <h2 className="mb-2 text-3xl font-semibold text-white">Create Account</h2>
+        <p className="mb-6 text-sm text-slate-300">Join CineReserve to reserve movie tickets and seats instantly.</p>
             {error && <ErrorMessage error={error} />}
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <InputGroup 
@@ -73,9 +77,9 @@ export function RegisterPage() {
                 <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Registering..." : "Register"}
                 </Button>
-                <div className="text-center text-sm text-gray-600">
+                <div className="text-center text-sm text-slate-300">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-blue-600 hover:text-blue-800">
+                  <Link to="/login" className="text-amber-300 hover:text-amber-200">
                     Login
                     </Link>
                 </div>

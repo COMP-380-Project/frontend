@@ -45,9 +45,9 @@ export function LoginPage() {
     });
     
     return (<div className="mx-auto max-w-md">
-        <div className="rounded-lg bg-white p-6 shadow-md">
-            <h2 className="mb-6 text-2xl font-semibold 
-            text-gray-800">Login</h2>
+        <div className="rounded-3xl border border-white/10 bg-slate-900/75 p-8 shadow-2xl shadow-black/30">
+            <h2 className="mb-2 text-3xl font-semibold text-white">Welcome Back</h2>
+            <p className="mb-6 text-sm text-slate-300">Sign in to browse upcoming movies, reserve seats, and manage your bookings.</p>
 
             {error && <ErrorMessage error={error} />}
             <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -70,9 +70,9 @@ export function LoginPage() {
                 <Button disabled={isLoading}>
                     {isLoading ? "Logging in..." : "Login"}  
                 </Button>
-                <div className="text-center text-sm text-gray-600">
+                <div className="text-center text-sm text-slate-300">
                     Don't have an account?{""}
-                    <Link className="text-blue-600 hover:text-blue-800" 
+                    <Link className="text-amber-300 hover:text-amber-200" 
                     to="/register"
                     >
                         Register

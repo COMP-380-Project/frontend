@@ -3,24 +3,40 @@ import {useAuth} from "../../contexts/AuthContext";
 import {Button} from "../Button";
 
 export function Header() {
-    const {isAuthenticated, logout} = useAuth();
+    const {isAuthenticated, logout, auth} = useAuth();
     const navigate = useNavigate();
 
     const handleLogout = () => {
       logout();
-      navigate("/");  
+      navigate("/login");  
     };
     return (
-        <header className="flex items-center justify-between bg-white p-4 shadow"> 
-            <h2 className="text-xl font-bold">Event app</h2>
-            <nav className="flex items-center gap-4">
-                <ul className="flex gap-4">
+        <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/90 backdrop-blur">
+            <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 md:px-8">
+            <h2 className="text-lg font-semibold tracking-wide text-white md:text-xl">CineReserve</h2>
+            <nav className="flex items-center gap-5">
+                <ul className="flex items-center gap-5 text-sm font-medium text-slate-200">
+                    {isAuthenticated && (
+                        <>
                     <li>
-                        <Link to="/">All Events</Link>
+                        <Link className="transition hover:text-amber-300" to="/movies">Now Showing</Link>
                     </li>
                     <li>
-                        <Link to="/my-events">My Events</Link>
+                        <Link className="transition hover:text-amber-300" to="/cart">Cart</Link>
                     </li>
+                    <li>
+                        <Link className="transition hover:text-amber-300" to="/bookings">My Bookings</Link>
+                    </li>
+                    {auth?.role === "manager" && (
+                        <li>
+                            <Link className="transition hover:text-amber-300" to="/reports">Reports</Link>
+                        </li>
+                    )}
+                    <li>
+                        <span className="text-slate-400">{auth?.name}</span>
+                    </li>
+                        </>
+                    )}
                     {isAuthenticated ? (
                     <li>
                         <Button variant="secondary" size="small" onClick={handleLogout}>
@@ -30,16 +46,17 @@ export function Header() {
                        ) : (
                        <>
                         <li>
-                            <Link to="/login">Login</Link>
+                            <Link className="transition hover:text-amber-300" to="/login">Login</Link>
                         </li>
                         <li>
-                            <Link to="/register">Register</Link>
+                            <Link className="transition hover:text-amber-300" to="/register">Register</Link>
                         </li>
                        </>
                     )}
 
                 </ul>
             </nav>
+            </div>
         </header>
     );
 }
