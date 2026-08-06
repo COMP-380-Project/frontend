@@ -10,12 +10,14 @@ import {useFetch} from "../hooks/useFetch";
 import type {CartItem, MovieData, MovieTicket} from "../src/types";
 import {formatDate} from "../utils/dateUtils";
 import {addMovieToCart, fetchBookedSeats, fetchBooking, fetchMovieById, seedConfirmationEmail} from "../api/movies";
+import {getGuestCartId} from "../utils/guestCart";
 
 const SEAT_ROWS = ["A", "B", "C", "D", "E", "F", "G"];
 const SEATS_PER_ROW = 12;
 
 export function MovieDetailsPage() {
     const {auth} = useAuth();
+    const cartOwnerId = auth?.userId ?? getGuestCartId();
     const {movieId} = useParams();
     const id = Number(movieId);
     const [selectedSeat, setSelectedSeat] = useState("");
@@ -146,12 +148,12 @@ export function MovieDetailsPage() {
 
                 <Button
                     className="mt-6 w-full justify-center"
-                    disabled={!auth?.userId || !selectedSeat}
+                    disabled={!selectedSeat}
                     onClick={() => {
-                        if (!auth?.userId || !selectedSeat) {
+                        if (!selectedSeat) {
                             return;
                         }
-                        void addToCartAction(id, auth.userId, selectedSeat);
+                        void addToCartAction(id, cartOwnerId, selectedSeat);
                     }}
                 >
                     Add to Cart

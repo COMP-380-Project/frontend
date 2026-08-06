@@ -1,6 +1,7 @@
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext";
 import {Button} from "../Button";
+import logo from "../../src/assets/mcablogo.svg";
 
 export function Header() {
     const {isAuthenticated, logout, auth} = useAuth();
@@ -13,17 +14,25 @@ export function Header() {
     return (
         <header className="sticky top-0 z-50 border-b border-white/10 bg-slate-950/90 backdrop-blur">
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 md:px-8">
-            <h2 className="text-lg font-semibold tracking-wide text-white md:text-xl">CineReserve</h2>
+            <Link to="/movies">
+                <img
+                    src={logo}
+                    alt="Theater Logo"
+                    className="h-15 w-auto"
+                />
+            </Link>
             <nav className="flex items-center gap-5">
                 <ul className="flex items-center gap-5 text-sm font-medium text-slate-200">
-                    {isAuthenticated && (
-                        <>
                     <li>
                         <Link className="transition hover:text-amber-300" to="/movies">Now Showing</Link>
                     </li>
                     <li>
                         <Link className="transition hover:text-amber-300" to="/cart">Cart</Link>
                     </li>
+                    
+                    
+                    {isAuthenticated && (
+                        <>
                     <li>
                         <Link className="transition hover:text-amber-300" to="/bookings">My Bookings</Link>
                     </li>

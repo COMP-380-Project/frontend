@@ -16,6 +16,7 @@ import {Header} from "../components/header/Header";
 import {AuthProvider} from "../contexts/AuthProvider";
 import {ProtectedRoute} from "../components/ProtectedRoute";
 import {useAuth} from "../contexts/AuthContext";
+import {GuestCheckoutPage} from "../pages/GuestCheckoutPage";
 
 function ManagerRoute({children}: {children: ReactNode}) {
     const {auth} = useAuth();
@@ -35,57 +36,38 @@ function App() {
                 <Header />
                 <main className="mx-auto w-full max-w-7xl px-5 py-8 md:px-8 md:py-10">
                     <Routes>
-                        <Route
-                            path="/"
-                            element={
-                                <ProtectedRoute>
-                                    <MoviesPage />
-                                </ProtectedRoute>
-                            }
-                        />
+                        <Route path="/" element={<Navigate to="/movies" replace />} />
+                        <Route path="/movies" element={<MoviesPage />} />
                         <Route
                             path="/movies/:movieId"
-                            element={
-                                <ProtectedRoute>
-                                    <MovieDetailsPage />
-                                </ProtectedRoute>
-                            }
+                            element={<MovieDetailsPage />}
                         />
-                        <Route path="/movies" 
-                        element={
-                        <ProtectedRoute>
-                            <MoviesPage />
-                        </ProtectedRoute>
-                    }
-                />
-                        <Route
-                            path="/cart"
-                            element={
-                                <ProtectedRoute>
-                                    <CartPage />
-                                </ProtectedRoute>
-                            }
-                        />
+
+                        <Route path="/cart" element={<CartPage />} />
+                        <Route path="/guest-checkout" element={<GuestCheckoutPage />} />
                         <Route
                             path="/bookings"
                             element={
-                                <ProtectedRoute>
-                                    <BookingsPage />
-                                </ProtectedRoute>
-                            }
-                        />
+                        <ProtectedRoute>
+                            <BookingsPage />
+                        </ProtectedRoute>
+        }
+    />
+
                         <Route
-                            path="/reports"
-                            element={
-                                <ProtectedRoute>
-                                    <ManagerRoute>
-                                        <ReportsPage />
-                                    </ManagerRoute>
-                                </ProtectedRoute>
-                            }
-                        />
+                        path="/reports"
+                        element={
+                        <ProtectedRoute>
+                            <ManagerRoute>
+                                <ReportsPage />
+                            </ManagerRoute>
+                        </ProtectedRoute>
+        }
+    />
+
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
+
                         <Route path="*" element={<Navigate to="/movies" replace />} />
                     </Routes>
                 </main>

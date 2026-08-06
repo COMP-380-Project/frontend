@@ -8,11 +8,13 @@ import type {CartItem, MovieTicket} from "../src/types";
 import {LoadingMessage} from "../components/LoadingMessage";
 import {ErrorMessage} from "../components/ErrorMessage";
 import {CartSummary} from "../components/movies/CartSummary";
+import {getGuestCartId} from "../utils/guestCart";
 
 export function CartPage() {
     const {auth} = useAuth();
+    const cartOwnerId = auth?.userId ?? getGuestCartId();
     const navigate = useNavigate();
-    const getCart = useCallback(() => fetchMovieCart(auth?.userId), [auth?.userId]);
+    const getCart = useCallback(() => fetchMovieCart(cartOwnerId), [cartOwnerId]);
     const {data, loading, error, refetch} = useFetch<CartItem[]>(getCart);
 
     const {run: removeAction, error: removeError} = useAsync<void, [number]>({
@@ -74,11 +76,20 @@ export function CartPage() {
             <CartSummary
                 items={items}
                 isProcessing={false}
+                isAuthenticated={Boolean(auth?.userId)}
                 onRemove={itemId => void removeAction(itemId)}
                 onCheckout={() => {
                     if (auth?.userId) {
                         void checkoutAction(auth.userId);
                     }
+                }}
+                onGuestCheckout={() => {
+                    navigate("/guest-checkout");
+                }}
+                onLogin={() => {
+                    navigate("/login", {
+                    state: {from: "/cart"},
+                    });
                 }}
             />
         </section>

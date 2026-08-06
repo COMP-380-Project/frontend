@@ -6,10 +6,13 @@ interface CartSummaryProps {
     items: CartItem[];
     onRemove: (cartItemId: number) => void;
     onCheckout: () => void;
+    onGuestCheckout: () => void;
+    onLogin: () => void;
     isProcessing: boolean;
-}
+    isAuthenticated: boolean;
+    }
 
-export function CartSummary({items, onRemove, onCheckout, isProcessing}: CartSummaryProps) {
+export function CartSummary({items, onRemove, onCheckout, onGuestCheckout, onLogin, isProcessing, isAuthenticated}: CartSummaryProps) {
     const total = items.reduce((sum, item) => sum + (item.movie.price ?? 12.99), 0);
 
     return (
@@ -53,9 +56,34 @@ export function CartSummary({items, onRemove, onCheckout, isProcessing}: CartSum
                 </div>
             </div>
 
-            <Button className="mt-5 w-full justify-center" disabled={items.length === 0 || isProcessing} onClick={onCheckout}>
-                {isProcessing ? "Booking..." : "Confirm Booking"}
-            </Button>
+            {isAuthenticated ? (
+                <Button
+                    className="mt-5 w-full justify-center"
+                    disabled={items.length === 0 || isProcessing}
+                    onClick={onCheckout}
+                >
+                    {isProcessing ? "Booking..." : "Confirm Booking"}
+                </Button>
+            ) : (
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    <Button
+                        className="w-full justify-center"
+                        disabled={items.length === 0 || isProcessing}
+                        onClick={onGuestCheckout}
+                    >
+                        Checkout as Guest
+                    </Button>
+
+                    <Button
+                        variant="secondary"
+                        className="w-full justify-center"
+                        disabled={isProcessing}
+                        onClick={onLogin}
+                    >
+                        Log In
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
