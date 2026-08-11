@@ -54,10 +54,10 @@ export const login = async (
         const data = await response.json();
 
         return {
-            userId: data.userId,
+            userId: data.auth.userId,
             token: data.token,
-            name: data.name,
-            role: data.role,
+            name: data.auth.name,
+            role: data.auth.role,
         };
     } catch (error) {
         console.error("Login error:", error);
