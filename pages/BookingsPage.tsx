@@ -7,7 +7,6 @@ import {cancelMovieBooking, fetchUserTickets} from "../api/movies";
 import type {MovieTicket} from "../src/types";
 import {LoadingMessage} from "../components/LoadingMessage";
 import {ErrorMessage} from "../components/ErrorMessage";
-import {formatDate} from "../utils/dateUtils";
 
 export function BookingsPage() {
     const {auth} = useAuth();
@@ -51,11 +50,11 @@ export function BookingsPage() {
                                 <h2 className="text-xl font-semibold">{ticket.movie.name}</h2>
                                 <div className="flex items-center gap-2 text-sm text-slate-300">
                                     <CalendarIcon className="h-4 w-4 text-amber-300" />
-                                    <span>{formatDate(ticket.movie.date)}</span>
+                                    <span>Showtime #{ticket.showtimeId}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm text-slate-300">
                                     <MapPinIcon className="h-4 w-4 text-amber-300" />
-                                    <span>{ticket.movie.location}</span>
+                                    <span>Seat {ticket.seatNumber}</span>
                                 </div>
                                 <div className="mt-4 flex items-center justify-between rounded-xl border border-white/10 bg-slate-950/80 px-4 py-3">
                                     <div className="flex items-center gap-2 text-sm text-slate-300">

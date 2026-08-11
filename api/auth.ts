@@ -1,5 +1,5 @@
 import type {AuthUser, User} from "../src/types";
-import {getNextId, loadDb, saveDb} from "./mockStore";
+import {apiFetch} from "./api";
 
 export const register = async (
     name: string,
@@ -7,35 +7,28 @@ export const register = async (
     password: string
 ): Promise<User | null> => {
     try {
-        const db = await loadDb();
-        const normalizedEmail = email.trim().toLowerCase();
+        const response = await apiFetch("/api/auth/register", {
+            method: "POST",
+            body: JSON.stringify({
+                name,
+                email,
+                password,
+            }),
+        });
 
-        const existingUser = db.users.find(
-            user => user.email.trim().toLowerCase() === normalizedEmail
-        );
-
-        if (existingUser) {
+        if (!response.ok) {
             return null;
         }
 
-        const newUser = {
-            id: getNextId(db.users),
-            name: name.trim(),
-            email: normalizedEmail,
-            password,
-            role: "customer" as const,
-        };
-
-        db.users.push(newUser);
-        saveDb(db);
+        const data = await response.json();
 
         return {
-            id: newUser.id,
-            name: newUser.name,
-            email: newUser.email,
-            role: newUser.role,
+            id: data.customer.id,
+            name: data.customer.name,
+            email: data.customer.email,
+            role: data.customer.role,
         };
-    } catch (error ) {
+    } catch (error) {
         console.error("Registration error:", error);
         return null;
     }
@@ -46,25 +39,27 @@ export const login = async (
     password: string
 ): Promise<AuthUser | null> => {
     try {
-        const db = await loadDb();
-        const normalizedEmail = email.trim().toLowerCase();
-        const user = db.users.find(
-            candidate =>
-                candidate.email.trim().toLowerCase() === normalizedEmail &&
-                candidate.password === password
-        );
+        const response = await apiFetch("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+                email,
+                password,
+            }),
+        });
 
-        if (!user) {
+        if (!response.ok) {
             return null;
         }
 
+        const data = await response.json();
+
         return {
-            userId: user.id,
-            token: `mock-token-${user.id}`,
-            name: user.name,
-            role: user.role,
+            userId: data.userId,
+            token: data.token,
+            name: data.name,
+            role: data.role,
         };
-    } catch (error ) {
+    } catch (error) {
         console.error("Login error:", error);
         return null;
     }

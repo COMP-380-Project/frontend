@@ -12,24 +12,30 @@ export interface User {
     role?: "customer" | "manager";
 }
 
+export interface Showtime {
+    id: number;
+    auditoriumId: number;
+    time: string;
+    price: number;
+}
+
 export interface MovieData {
     id: number;
     name: string;
     description: string;
-    date: string;
-    location: string;
-    ownerId: number;
-    posterUrl?: string;
     genre?: string;
     durationMinutes?: number;
     rating?: string;
     language?: string;
-    price?: number;
+    posterUrl?: string;
+    cast?: string;
+    showtimes: Showtime[];
 }
 
 export interface MovieTicket {
     ticketId: number;
     movieId: number;
+    showtimeId: number;
     seatNumber: string;
     bookedAt: string;
     confirmationSentAt?: string;
@@ -38,13 +44,22 @@ export interface MovieTicket {
     movie: MovieData;
 }
 
+export interface SeatData {
+    id: number;
+    seatNumber: string;
+    isBooked: boolean;
+    isLocked: boolean;
+    lockExpiresAt: string | null;
+    status: "available" | "locked" | "booked";
+}
+
 export interface CartItem {
     id: number;
-    movieId: number;
-    userId: number;
+    showtimeId: number;
+    seatId: number;
     seatNumber: string;
-    selectedAt: string;
-    movie: MovieData;
+    ticketType: string;
+    price: number;
 }
 
 export interface MovieReportRow {

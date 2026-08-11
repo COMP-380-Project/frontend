@@ -1,5 +1,4 @@
 import {CalendarIcon, Clock3Icon, MapPinIcon, StarIcon, TicketIcon} from "lucide-react";
-import {formatDate} from "../../utils/dateUtils";
 import type {MovieData} from "../../src/types";
 
 interface MovieCardProps {
@@ -30,7 +29,7 @@ export function MovieCard({movie, onClick}: MovieCardProps) {
                 <p className="mb-4 line-clamp-2 text-sm text-slate-300">{movie.description}</p>
                 <div className="mb-2 flex items-center text-sm text-slate-300">
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    <p>{formatDate(movie.date)}</p>
+                    <p>{movie.showtimes.length} showtime {movie.showtimes.length !== 1 ? "s" : ""}</p>
                 </div>
                 <div className="mb-2 flex items-center text-sm text-slate-300">
                     <Clock3Icon className="mr-2 h-4 w-4" />
@@ -38,7 +37,7 @@ export function MovieCard({movie, onClick}: MovieCardProps) {
                 </div>
                 <div className="mb-5 flex items-center text-sm text-slate-300">
                     <MapPinIcon className="mr-2 h-4 w-4" />
-                    <p>{movie.location}</p>
+                    <p>{movie.durationMinutes || 0} min</p>
                 </div>
                 <div className="mt-auto flex items-center justify-between">
                     <div className="flex items-center gap-2 text-sm text-amber-300">
@@ -47,7 +46,7 @@ export function MovieCard({movie, onClick}: MovieCardProps) {
                     </div>
                     <div className="flex items-center gap-2 text-sm font-semibold text-amber-200">
                         <TicketIcon className="h-4 w-4" />
-                        <span>${(movie.price ?? 12.99).toFixed(2)}</span>
+                        <span>{movie.showtimes.length > 0 ? `From $${Math.min(...movie.showtimes.map(showtime => showtime.price)).toFixed(2)}`: "No showtimes"}</span>
                     </div>
                 </div>
                 <div className="mt-4 rounded-lg bg-amber-300/90 px-3 py-2 text-center text-sm font-semibold text-slate-900 transition group-hover:bg-amber-300">

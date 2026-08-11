@@ -1,221 +1,256 @@
-import type {CartItem, MovieData, MovieReportRow, MovieTicket} from "../src/types";
-import {getNextId, loadDb, saveDb} from "./mockStore";
+import type {
+    CartItem,
+    MovieData,
+    MovieReportRow,
+    MovieTicket,
+    SeatData
+} from "../src/types";
 
-const mapBookingToTicket = (dbMovie: MovieData, booking: {id: number; movieId: number; userId: number; seatNumber: string; bookedAt: string; confirmationSentAt?: string; customerEmail?: string; status?: "confirmed" | "cancelled";}): MovieTicket => ({
-    ticketId: booking.id,
-    movieId: booking.movieId,
-    seatNumber: booking.seatNumber,
-    bookedAt: booking.bookedAt,
-    confirmationSentAt: booking.confirmationSentAt,
-    customerEmail: booking.customerEmail,
-    status: booking.status,
-    movie: dbMovie,
+import {apiFetch} from "./api";
+
+
+interface BackendShowtime {
+    id: number;
+    auditorium_id: number;
+    showtime: string;
+    price: number;
+}
+
+interface BackendMovie {
+    id: number;
+    title: string;
+    description: string;
+    genre?: string;
+    duration?: number;
+    rating?: number;
+    cast?: string;
+    showtimes?: BackendShowtime[];
+}
+
+
+const mapMovie = (movie: BackendMovie): MovieData => ({
+    id: movie.id,
+    name: movie.title,
+    description: movie.description,
+    genre: movie.genre,
+    durationMinutes: movie.duration,
+    rating:
+        movie.rating !== undefined
+            ? String(movie.rating)
+            : undefined,
+    cast: movie.cast,
+    showtimes: (movie.showtimes ?? []).map(showtime => ({
+        id: showtime.id,
+        auditoriumId: showtime.auditorium_id,
+        time: showtime.showtime,
+        price: showtime.price,
+    })),
 });
 
-export const fetchMovies = async (query = ""): Promise<MovieData[]> => {
-    const db = await loadDb();
-    const upcomingMovies = db.movies.filter(movie => new Date(movie.date) >= new Date());
-    const normalizedQuery = query.trim().toLowerCase();
 
-    if (!normalizedQuery) {
-        return upcomingMovies.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+export const fetchMovies = async (
+    query = ""
+): Promise<MovieData[]> => {
+    const url = query.trim()
+        ? `/api/events/search?title=${encodeURIComponent(query.trim())}`
+        : "/api/events";
+
+    const response = await apiFetch(url);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to load movies"
+        );
     }
 
-    return upcomingMovies.filter(movie =>
-        [movie.name, movie.genre, movie.language, movie.location, movie.description]
-            .filter(Boolean)
-            .some(value => value!.toLowerCase().includes(normalizedQuery))
-    ).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    return (data as BackendMovie[]).map(mapMovie);
 };
 
-export const fetchMovieById = async (movieId: number): Promise<MovieData> => {
-    const db = await loadDb();
-    const movie = db.movies.find(candidate => candidate.id === movieId);
-    if (!movie) {
-        throw new Error(`Movie ${movieId} not found`);
-    }
-    return movie;
-};
 
-export const fetchBookedSeats = async (movieId: number): Promise<string[]> => {
-    const db = await loadDb();
+export const fetchMovieById = async (
+    movieId: number
+): Promise<MovieData> => {
+    const response = await apiFetch(
+        `/api/events/${movieId}`
+    );
 
-    const confirmedSeats = db.bookings
-        .filter(
-            booking =>
-                booking.movieId === movieId &&
-                booking.status !== "cancelled"
-        )
-        .map(booking => booking.seatNumber);
+    const data = await response.json();
 
-    const seatsInCart = db.cartItems
-        .filter(item => item.movieId === movieId)
-        .map(item => item.seatNumber);
-
-    return [...new Set([...confirmedSeats, ...seatsInCart])];
-};
-
-export const fetchUserTickets = async (userId: number | undefined): Promise<MovieTicket[]> => {
-    if (!userId) {
-        return [];
+    if (!response.ok) {
+        throw new Error(
+            data.error || `Movie ${movieId} not found`
+        );
     }
 
-    const db = await loadDb();
-    return db.bookings
-        .filter(booking => booking.userId === userId && booking.status !== "cancelled")
-        .map(booking => {
-            const movie = db.movies.find(candidate => candidate.id === booking.movieId);
-            return movie ? mapBookingToTicket(movie, booking) : null;
+    return mapMovie(data as BackendMovie);
+};
+
+
+export const fetchShowtimeSeats = async (
+    showtimeId: number
+): Promise<SeatData[]> => {
+    const response = await apiFetch(
+        `/api/seats/showtime/${showtimeId}`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to load seats"
+        );
+    }
+
+    return data.seats.map(
+        (seat: {
+            id: number;
+            seat_number: string;
+            is_booked: boolean;
+            is_locked: boolean;
+            lock_expires_at: string | null;
+            status: "available" | "locked" | "booked";
+        }): SeatData => ({
+            id: seat.id,
+            seatNumber: seat.seat_number,
+            isBooked: seat.is_booked,
+            isLocked: seat.is_locked,
+            lockExpiresAt: seat.lock_expires_at,
+            status: seat.status,
         })
-        .filter((ticket): ticket is MovieTicket => ticket !== null)
-        .sort((a, b) => new Date(a.movie.date).getTime() - new Date(b.movie.date).getTime());
+    );
 };
 
-export const fetchBooking = async (movieId: number, userId: number | undefined): Promise<MovieTicket | null> => {
-    if (!userId) {
-        return null;
+
+export const addSeatToCart = async (
+    userId: number,
+    showtimeId: number,
+    seatId: number
+): Promise<CartItem> => {
+    const response = await apiFetch(
+        `/api/cart/${userId}/add-seat`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                showtime_id: showtimeId,
+                seat_id: seatId,
+                ticket_type: "adult",
+            }),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        const message =
+            data.error || "Failed to add seat to cart";
+
+        const lowerMessage = message.toLowerCase();
+
+        if (
+            lowerMessage.includes("already booked") ||
+            lowerMessage.includes("already locked")
+        ) {
+            throw new Error(
+                "Seat no longer available. Please choose another seat."
+            );
+        }
+
+        throw new Error(message);
     }
 
-    const db = await loadDb();
-    const booking = db.bookings.find(candidate => candidate.movieId === movieId && candidate.userId === userId && candidate.status !== "cancelled");
-    if (!booking) {
-        return null;
-    }
-
-    const movie = db.movies.find(candidate => candidate.id === movieId);
-    return movie ? mapBookingToTicket(movie, booking) : null;
+    return {
+        id: data.ticket.id,
+        showtimeId,
+        seatId,
+        seatNumber: data.ticket.seat_number,
+        ticketType: data.ticket.ticket_type,
+        price: data.ticket.price,
+    };
 };
 
-export const fetchMovieCart = async (userId: number | undefined): Promise<CartItem[]> => {
+
+export const fetchMovieCart = async (
+    userId: number | undefined
+): Promise<CartItem[]> => {
     if (!userId) {
         return [];
     }
 
-    const db = await loadDb();
-    return db.cartItems
-        .filter(item => item.userId === userId)
-        .map(item => ({...item, movie: {...item.movie}}));
-};
+    const response = await apiFetch(
+        `/api/cart/${userId}`
+    );
 
-export const addMovieToCart = async (movieId: number, userId: number, seatNumber: string): Promise<CartItem> => {
-    const normalizedSeat = seatNumber.trim().toUpperCase();
-    if (!normalizedSeat) {
-        throw new Error("Seat is required");
+    if (response.status === 404) {
+        return [];
     }
 
-    const db = await loadDb();
-    const movie = db.movies.find(candidate => candidate.id === movieId);
-    if (!movie) {
-        throw new Error(`Movie ${movieId} not found`);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to load cart"
+        );
     }
 
-    const seatTaken = db.bookings.some(booking => booking.movieId === movieId && booking.seatNumber === normalizedSeat && booking.status !== "cancelled") ||
-        db.cartItems.some(item => item.movieId === movieId && item.seatNumber === normalizedSeat);
-    if (seatTaken) {
-        throw new Error("This seat is already reserved");
-    }
-
-    const cartItem = {
-        id: getNextId(db.cartItems),
-        movieId,
-        userId,
-        seatNumber: normalizedSeat,
-        selectedAt: new Date().toISOString(),
-        movie,
-    } satisfies CartItem;
-
-    db.cartItems.push(cartItem);
-    saveDb(db);
-    return cartItem;
+    return data.tickets.map(
+        (ticket: {
+            id: number;
+            showtime_id: number;
+            seat_id: number;
+            seat_number: string;
+            ticket_type: string;
+            price: number;
+        }): CartItem => ({
+            id: ticket.id,
+            showtimeId: ticket.showtime_id,
+            seatId: ticket.seat_id,
+            seatNumber: ticket.seat_number,
+            ticketType: ticket.ticket_type,
+            price: ticket.price,
+        })
+    );
 };
 
-export const removeMovieFromCart = async (cartItemId: number): Promise<void> => {
-    const db = await loadDb();
-    db.cartItems = db.cartItems.filter(item => item.id !== cartItemId);
-    saveDb(db);
-};
 
-export const bookMoviesFromCart = async (userId: number): Promise<MovieTicket[]> => {
-    const db = await loadDb();
-    const userCart = db.cartItems.filter(item => item.userId === userId);
-    const user = db.users.find(candidate => candidate.id === userId);
-
-    const confirmedTickets: MovieTicket[] = [];
-
-    for (const item of userCart) {
-        const existingBooking = db.bookings.find(booking => booking.movieId === item.movieId && booking.userId === userId && booking.status !== "cancelled");
-        if (existingBooking) {
-            existingBooking.seatNumber = item.seatNumber;
-            existingBooking.bookedAt = new Date().toISOString();
-            existingBooking.status = "confirmed";
-            existingBooking.confirmationSentAt = new Date().toISOString();
-            existingBooking.customerEmail = user?.email;
-            const movie = db.movies.find(candidate => candidate.id === item.movieId);
-            if (movie) {
-                confirmedTickets.push(mapBookingToTicket(movie, existingBooking));
-            }
-            continue;
+export const removeMovieFromCart = async (
+    userId: number,
+    ticketId: number
+): Promise<void> => {
+    const response = await apiFetch(
+        `/api/cart/${userId}/remove-seat`,
+        {
+            method: "DELETE",
+            body: JSON.stringify({
+                ticket_id: ticketId,
+            }),
         }
+    );
 
-        const booking = {
-            id: getNextId(db.bookings),
-            movieId: item.movieId,
-            userId,
-            seatNumber: item.seatNumber,
-            bookedAt: new Date().toISOString(),
-            confirmationSentAt: new Date().toISOString(),
-            customerEmail: user?.email,
-            status: "confirmed" as const,
-        };
-        db.bookings.push(booking);
-        const movie = db.movies.find(candidate => candidate.id === item.movieId);
-        if (movie) {
-            confirmedTickets.push(mapBookingToTicket(movie, booking));
-        }
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to remove seat"
+        );
     }
-
-    db.cartItems = db.cartItems.filter(item => item.userId !== userId);
-    saveDb(db);
-    return confirmedTickets;
 };
-
-export const cancelMovieBooking = async (ticketId: number): Promise<void> => {
-    const db = await loadDb();
-    const booking = db.bookings.find(item => item.id === ticketId);
-    if (!booking) {
-        throw new Error(`Booking ${ticketId} not found`);
-    }
-    booking.status = "cancelled";
-    saveDb(db);
+export const bookMoviesFromCart = async (
+    _userId: number
+): Promise<MovieTicket[]> => {
+    throw new Error("Checkout endpoint not connected yet");
 };
-
 export const fetchMovieReports = async (): Promise<MovieReportRow[]> => {
-    const db = await loadDb();
-    return db.movies.map(movie => {
-        const activeBookings = db.bookings.filter(booking => booking.movieId === movie.id && booking.status !== "cancelled");
-        return {
-            movieId: movie.id,
-            movieName: movie.name,
-            bookings: activeBookings.length,
-            revenue: activeBookings.length * (movie.price ?? 12.99),
-        };
-    }).sort((a, b) => b.bookings - a.bookings);
+    return [];
+};
+export const fetchUserTickets = async (
+    _userId: number | undefined
+): Promise<MovieTicket[]> => {
+    return [];
 };
 
-export const seedConfirmationEmail = async (ticketId: number): Promise<MovieTicket> => {
-    const db = await loadDb();
-    const booking = db.bookings.find(item => item.id === ticketId);
-    if (!booking) {
-        throw new Error(`Booking ${ticketId} not found`);
-    }
-
-    booking.confirmationSentAt = new Date().toISOString();
-    const movie = db.movies.find(candidate => candidate.id === booking.movieId);
-    saveDb(db);
-
-    if (!movie) {
-        throw new Error(`Movie ${booking.movieId} not found`);
-    }
-
-    return mapBookingToTicket(movie, booking);
+export const cancelMovieBooking = async (
+    _ticketId: number
+): Promise<void> => {
+    throw new Error("Cancel booking endpoint not connected yet");
 };
