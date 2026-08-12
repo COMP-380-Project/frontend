@@ -231,49 +231,58 @@ export function MovieDetailsPage() {
                             Screen
                         </div>
 
-
-                        <div className="mt-5 grid grid-cols-10 gap-2">
-
-                            {(seats ?? []).map(seat => {
-
-                                const isSelected =
-                                    selectedSeatId === seat.id;
-
-                                const unavailable =
-                                    seat.status === "booked" ||
-                                    seat.status === "locked";
-
+                        <div className="mt-5 space-y-2">
+                            {Array.from(
+                                new Set(
+                                    (seats ?? []).map(seat =>
+                                        seat.seatNumber.charAt(0)
+                                    )
+                                )
+                            ).map(row => {
+                                const rowSeats = (seats ?? []).filter(
+                                    seat => seat.seatNumber.startsWith(row)
+                                );
 
                                 return (
-                                    <button
-                                        key={seat.id}
-                                        type="button"
-                                        disabled={unavailable}
-
-                                        onClick={() =>
-                                            setSelectedSeatId(seat.id)
-                                        }
-
-                                        className={[
-                                            "rounded-md border py-2 text-xs font-semibold transition",
-
-                                            isSelected
-                                                ? "border-amber-300 bg-amber-300 text-slate-950"
-                                                : "border-slate-700 bg-slate-800 text-slate-200 hover:border-amber-300/70",
-
-                                            unavailable
-                                                ? "cursor-not-allowed border-rose-400/60 bg-rose-500/20 text-rose-200"
-                                                : ""
-
-                                        ].join(" ")}
+                                    <div
+                                        key={row}
+                                        className="flex justify-center gap-2"
                                     >
+                                        {rowSeats.map(seat => {
+                                            const isSelected =
+                                                selectedSeatId === seat.id;
 
-                                        {seat.seatNumber}
+                                            const unavailable =
+                                                seat.status === "booked" ||
+                                                seat.status === "locked";
 
-                                    </button>
+                                            return (
+                                                <button
+                                                    key={seat.id}
+                                                    type="button"
+                                                    disabled={unavailable}
+                                                    onClick={() =>
+                                                        setSelectedSeatId(seat.id)
+                                                    }
+                                                    className={[
+                                                        "w-24 rounded-md border py-2 text-xs font-semibold transition",
+
+                                                        isSelected
+                                                            ? "border-amber-300 bg-amber-300 text-slate-950"
+                                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-amber-300/70",
+
+                                                        unavailable
+                                                        ? "cursor-not-allowed border-rose-400/60 bg-rose-500/20 text-rose-200"
+                                                        : ""
+                                                    ].join(" ")}
+                                                >
+                                                    {seat.seatNumber}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 );
                             })}
-
                         </div>
 
 
