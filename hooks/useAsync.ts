@@ -2,26 +2,44 @@ import {useState} from "react";
 
 export function useAsync<Data, Params extends unknown[]>(config: {
     action: (...params: Params) => Promise<Data>;
-    onSuccess?: ()=> void;
+    onSuccess?: (data: Data) => void;
     errorMessage?: string;
 }) {
     const [error, setError] = useState<Error | null>(null);
+    const [loading, setLoading] = useState(false);
 
     const run = async (...params: Params) => {
         try {
+            setLoading(true);
             setError(null);
-            await config.action(...params);
+
+            const result = await config.action(...params);
+
             if (config.onSuccess) {
-                await config.onSuccess();
+                config.onSuccess(result);
             }
+
+            return result;
+
         } catch (err) {
+
             setError(
-                err instanceof Error 
-                    ? err 
-                    : new Error(config.errorMessage ?? "Operation failed")
+                err instanceof Error
+                    ? err
+                    : new Error(
+                        config.errorMessage ?? "Operation failed"
+                    )
             );
+
+        } finally {
+            setLoading(false);
         }
     };
 
-    return {run, error, setError};
+    return {
+        run,
+        error,
+        setError,
+        loading
+    };
 }

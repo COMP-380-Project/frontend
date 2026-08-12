@@ -4,11 +4,10 @@ import {useAuth} from "../contexts/AuthContext";
 import {useAsync} from "../hooks/useAsync";
 import {useFetch} from "../hooks/useFetch";
 import {
-    bookMoviesFromCart,
     fetchMovieCart,
     removeMovieFromCart
 } from "../api/movies";
-import type {CartItem, MovieTicket} from "../src/types";
+import type {CartItem} from "../src/types";
 import {LoadingMessage} from "../components/LoadingMessage";
 import {ErrorMessage} from "../components/ErrorMessage";
 import {CartSummary} from "../components/movies/CartSummary";
@@ -40,17 +39,6 @@ export function CartPage() {
         errorMessage: "Failed to remove item",
     });
 
-    const {
-        run: checkoutAction,
-        error: checkoutError
-    } = useAsync<MovieTicket[], [number]>({
-        action: bookMoviesFromCart,
-        onSuccess: () => {
-            void refetch();
-            navigate("/bookings");
-        },
-        errorMessage: "Failed to complete booking",
-    });
 
     if (loading) {
         return <LoadingMessage message="Loading cart..." />;
@@ -59,8 +47,7 @@ export function CartPage() {
     const items = data ?? [];
     const errorMessage =
         error ||
-        removeError ||
-        checkoutError;
+        removeError;
 
     return (
         <section className="grid gap-6 lg:grid-cols-[1.25fr,0.75fr]">
@@ -151,7 +138,7 @@ export function CartPage() {
 
                 onCheckout={() => {
                     if (auth?.userId) {
-                        void checkoutAction(auth.userId);
+                        navigate("/checkout");
                     }
                 }}
 

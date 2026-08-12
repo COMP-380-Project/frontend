@@ -235,10 +235,85 @@ export const removeMovieFromCart = async (
         );
     }
 };
-export const bookMoviesFromCart = async (
-    _userId: number
-): Promise<MovieTicket[]> => {
-    throw new Error("Checkout endpoint not connected yet");
+export interface CheckoutTotal {
+    subtotal: number;
+    tax: number;
+    fees: number;
+    total: number;
+}
+
+export interface CheckoutResult {
+    message: string;
+
+    order: {
+        id: number;
+        customer_id: number;
+        total_amount: number;
+        order_status: string;
+        created_at: string;
+    };
+
+    payment: {
+        id: number;
+        amount: number;
+        payment_status: string;
+        receipt: unknown;
+    };
+
+    tickets: {
+        id: number;
+        seat_number: string;
+        ticket_type: string;
+        price: number;
+    }[];
+}
+
+export const fetchCheckoutTotal = async (
+    userId: number
+): Promise<CheckoutTotal> => {
+
+    const response = await apiFetch(
+        `/api/cart/${userId}/calculate-total`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to calculate checkout total"
+        );
+    }
+
+    return data;
+};
+
+export const checkoutCart = async (
+    userId: number,
+    amount: number
+): Promise<CheckoutResult> => {
+
+    const response = await apiFetch(
+        "/api/payment/checkout",
+        {
+            method: "POST",
+
+            body: JSON.stringify({
+                customer_id: userId,
+                amount,
+                payment_method: "Credit Card",
+            }),
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Payment failed"
+        );
+    }
+
+    return data;
 };
 export const fetchMovieReports = async (): Promise<MovieReportRow[]> => {
     return [];
