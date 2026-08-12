@@ -1,7 +1,6 @@
 import {Link, useNavigate} from "react-router-dom";
 import {useAuth} from "../../contexts/AuthContext";
 import {Button} from "../Button";
-import logo from "../../src/assets/mcablogo.svg";
 
 export function Header() {
     const {isAuthenticated, logout, auth} = useAuth();
@@ -16,9 +15,9 @@ export function Header() {
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 md:px-8">
             <Link to="/movies">
                 <img
-                    src={logo}
-                    alt="Theater Logo"
-                    className="h-15 w-auto"
+                    src="/images/404Theaterslogo.svg"
+                    alt="404 Theaters Logo"
+                    className="h-14 w-auto"
                 />
             </Link>
             <nav className="flex items-center gap-5">

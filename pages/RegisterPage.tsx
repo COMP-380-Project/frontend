@@ -48,7 +48,7 @@ export function RegisterPage() {
     <div className="mx-auto max-w-md">
       <div className="rounded-3xl border border-white/10 bg-slate-900/75 p-8 shadow-2xl shadow-black/30">
         <h2 className="mb-2 text-3xl font-semibold text-white">Create Account</h2>
-        <p className="mb-6 text-sm text-slate-300">Join CineReserve to reserve movie tickets and seats instantly.</p>
+        <p className="mb-6 text-sm text-slate-300"> Join 404 Theaters to reserve movie tickets and seats instantly.</p>
             {error && <ErrorMessage error={error} />}
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <InputGroup 

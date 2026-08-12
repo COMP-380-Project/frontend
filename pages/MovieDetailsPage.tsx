@@ -221,7 +221,7 @@ export function MovieDetailsPage() {
                         </div>
 
 
-                        <div className="mt-5 grid grid-cols-6 gap-2">
+                        <div className="mt-5 grid grid-cols-10 gap-2">
 
                             {(seats ?? []).map(seat => {
 

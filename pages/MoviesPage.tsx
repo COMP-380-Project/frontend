@@ -17,7 +17,7 @@ export function MoviesPage() {
             <div className="mb-8 overflow-hidden rounded-3xl border border-white/10 bg-linear-to-r from-slate-900 via-slate-900 to-orange-950 p-8 shadow-2xl shadow-black/25">
                 <div className="mb-4 flex items-center gap-3 text-amber-300">
                     <FilmIcon className="h-5 w-5" />
-                    <span className="text-sm font-semibold uppercase tracking-[0.2em]">MCAB Theater</span>
+                    <span className="text-sm font-semibold uppercase tracking-[0.2em]">404 Theaters</span>
                 </div>
                 <h1 className="max-w-2xl text-3xl font-semibold leading-tight text-white md:text-4xl">
                     GET YOUR TICKETS NOW!
