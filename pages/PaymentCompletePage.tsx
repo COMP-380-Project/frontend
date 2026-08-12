@@ -3,7 +3,6 @@ import {Button} from "../components/Button";
 
 
 interface PaymentState {
-
     order?: {
         id: number;
         total_amount: number;
@@ -22,6 +21,13 @@ interface PaymentState {
         ticket_type: string;
         price: number;
     }[];
+
+    guestInfo?: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        phone: string;
+    };
 }
 
 
@@ -71,10 +77,11 @@ export function PaymentCompletePage() {
             </h1>
 
 
-            <p className="mt-2 text-slate-300">
-                Your movie reservation
-                has been confirmed.
-            </p>
+            <p className="mt-2 text-slate-300">Your movie reservation has been confirmed.</p>
+
+            {state?.guestInfo && (
+                <p className="mt-1 text-sm text-slate-400">A confirmation will be sent to {state.guestInfo.email}.</p>
+            )}
 
 
             {state?.order && (

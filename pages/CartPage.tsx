@@ -5,7 +5,9 @@ import {useAsync} from "../hooks/useAsync";
 import {useFetch} from "../hooks/useFetch";
 import {
     fetchMovieCart,
-    removeMovieFromCart
+    fetchGuestCart,
+    removeMovieFromCart,
+    removeSeatFromGuestCart
 } from "../api/movies";
 import type {CartItem} from "../src/types";
 import {LoadingMessage} from "../components/LoadingMessage";
@@ -19,8 +21,11 @@ export function CartPage() {
     const cartOwnerId = auth?.userId;
 
     const getCart = useCallback(
-        () => fetchMovieCart(cartOwnerId),
-        [cartOwnerId]
+    () =>
+        cartOwnerId
+            ? fetchMovieCart(cartOwnerId)
+            : fetchGuestCart(),
+    [cartOwnerId]
     );
 
     const {
@@ -33,9 +38,19 @@ export function CartPage() {
     const {
         run: removeAction,
         error: removeError
-    } = useAsync<void, [number, number]>({
-        action: removeMovieFromCart,
+    } = useAsync<void, [number]>({
+        action: itemId =>
+            cartOwnerId
+                ? removeMovieFromCart(
+                    cartOwnerId,
+                    itemId
+                )
+                : removeSeatFromGuestCart(
+                    itemId
+                ),
+
         onSuccess: () => void refetch(),
+
         errorMessage: "Failed to remove item",
     });
 
@@ -101,12 +116,7 @@ export function CartPage() {
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            if (auth?.userId) {
-                                                void removeAction(
-                                                    auth.userId,
-                                                    item.id
-                                                );
-                                            }
+                                            void removeAction(item.id);
                                         }}
                                         className="rounded-lg border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-rose-300 hover:text-rose-200"
                                     >
@@ -128,12 +138,7 @@ export function CartPage() {
                 isAuthenticated={Boolean(auth?.userId)}
 
                 onRemove={itemId => {
-                    if (auth?.userId) {
-                        void removeAction(
-                            auth.userId,
-                            itemId
-                        );
-                    }
+                    void removeAction(itemId);
                 }}
 
                 onCheckout={() => {

@@ -154,8 +154,6 @@ export function CheckoutPage() {
                     onSubmit={handleSubmit}
                 >
 
-                    {/* NAME */}
-
                     <div>
 
                         <label
@@ -333,8 +331,7 @@ export function CheckoutPage() {
 
 
                     <p className="text-xs text-slate-400">
-                        Demo payment only. No real card
-                        will be charged.
+                        Demo payment only.
                     </p>
 
 

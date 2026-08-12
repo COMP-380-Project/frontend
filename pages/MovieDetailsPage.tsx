@@ -11,6 +11,7 @@ import type {CartItem, MovieData, SeatData} from "../src/types";
 
 import {
     addSeatToCart,
+    addSeatToGuestCart,
     fetchMovieById,
     fetchShowtimeSeats
 } from "../api/movies";
@@ -67,18 +68,28 @@ export function MovieDetailsPage() {
 
 
     const {
-        run: addToCartAction,
-        error: cartError
-    } = useAsync<CartItem, [number, number, number]>({
-        action: addSeatToCart,
+    run: addToCartAction,
+    error: cartError
+    } = useAsync<CartItem, [number, number]>({
+    action: (showtimeId, seatId) =>
+        auth?.userId
+            ? addSeatToCart(
+                auth.userId,
+                showtimeId,
+                seatId
+            )
+            : addSeatToGuestCart(
+                showtimeId,
+                seatId
+            ),
 
-        onSuccess: () => {
-            setSelectedSeatId(null);
-            void refetchSeats();
-        },
+    onSuccess: () => {
+        setSelectedSeatId(null);
+        void refetchSeats();
+    },
 
-        errorMessage: "Seat no longer available"
-    });
+    errorMessage: "Seat no longer available"
+});
 
 
     const allError = error || cartError;
@@ -299,44 +310,26 @@ export function MovieDetailsPage() {
 
                         </div>
 
-
-                        {!auth?.userId && (
-                            <p className="mt-4 text-sm text-amber-300">
-                                Please log in to reserve a seat.
-                            </p>
-                        )}
-
-
                         <Button
                             className="mt-6 w-full justify-center"
-
-                            disabled={
-                                !selectedSeatId ||
-                                !auth?.userId
-                            }
+                            disabled={!selectedSeatId}
 
                             onClick={() => {
-
                                 if (
-                                    !auth?.userId ||
                                     !selectedShowtimeId ||
                                     !selectedSeatId
                                 ) {
-                                    return;
+                                return;
                                 }
 
-
                                 void addToCartAction(
-                                    auth.userId,
                                     selectedShowtimeId,
                                     selectedSeatId
                                 );
                             }}
-                        >
-
-                            Add to Cart
-
-                        </Button>
+                    >
+                        Add to Cart
+                    </Button>
 
                     </>
                 )}
