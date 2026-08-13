@@ -32,7 +32,6 @@ export function CartSummary({items, onRemove, onCheckout, onGuestCheckout, onLog
                                 <div>
                                     <h3 className="text-lg font-semibold text-white">Ticket</h3>
                                     <p className="text-sm text-slate-300">Seat {item.seatNumber}</p>
-                                    <p className="text-sm text-slate-400">Seat {item.seatNumber}</p>
                                 </div>
                                 <button
                                     type="button"
