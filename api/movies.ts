@@ -6,7 +6,7 @@ import type {
     SeatData
 } from "../src/types";
 
-import { apiFetch } from "./api";
+import {apiFetch} from "./api";
 
 
 interface BackendShowtime {
@@ -15,6 +15,7 @@ interface BackendShowtime {
     showtime: string;
     price: number;
 }
+
 
 interface BackendMovie {
     id: number;
@@ -39,6 +40,7 @@ const mapMovie = (movie: BackendMovie): MovieData => ({
             ? String(movie.rating)
             : undefined,
     cast: movie.cast,
+
     showtimes: (movie.showtimes ?? []).map(showtime => ({
         id: showtime.id,
         auditoriumId: showtime.auditorium_id,
@@ -51,11 +53,13 @@ const mapMovie = (movie: BackendMovie): MovieData => ({
 export const fetchMovies = async (
     query = ""
 ): Promise<MovieData[]> => {
+
     const url = query.trim()
         ? `/api/events/search?title=${encodeURIComponent(query.trim())}`
         : "/api/events";
 
     const response = await apiFetch(url);
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -71,6 +75,7 @@ export const fetchMovies = async (
 export const fetchMovieById = async (
     movieId: number
 ): Promise<MovieData> => {
+
     const response = await apiFetch(
         `/api/events/${movieId}`
     );
@@ -79,7 +84,8 @@ export const fetchMovieById = async (
 
     if (!response.ok) {
         throw new Error(
-            data.error || `Movie ${movieId} not found`
+            data.error ||
+            `Movie ${movieId} not found`
         );
     }
 
@@ -90,6 +96,7 @@ export const fetchMovieById = async (
 export const fetchShowtimeSeats = async (
     showtimeId: number
 ): Promise<SeatData[]> => {
+
     const response = await apiFetch(
         `/api/seats/showtime/${showtimeId}`
     );
@@ -127,10 +134,12 @@ export const addSeatToCart = async (
     showtimeId: number,
     seatId: number
 ): Promise<CartItem> => {
+
     const response = await apiFetch(
         `/api/cart/${userId}/add-seat`,
         {
             method: "POST",
+
             body: JSON.stringify({
                 showtime_id: showtimeId,
                 seat_id: seatId,
@@ -142,10 +151,13 @@ export const addSeatToCart = async (
     const data = await response.json();
 
     if (!response.ok) {
-        const message =
-            data.error || "Failed to add seat to cart";
 
-        const lowerMessage = message.toLowerCase();
+        const message =
+            data.error ||
+            "Failed to add seat to cart";
+
+        const lowerMessage =
+            message.toLowerCase();
 
         if (
             lowerMessage.includes("already booked") ||
@@ -166,6 +178,12 @@ export const addSeatToCart = async (
         seatNumber: data.ticket.seat_number,
         ticketType: data.ticket.ticket_type,
         price: data.ticket.price,
+
+        movieTitle:
+            data.ticket.movie_title ?? null,
+
+        showtime:
+            data.ticket.showtime ?? null,
     };
 };
 
@@ -173,6 +191,7 @@ export const addSeatToCart = async (
 export const fetchMovieCart = async (
     userId: number | undefined
 ): Promise<CartItem[]> => {
+
     if (!userId) {
         return [];
     }
@@ -189,7 +208,8 @@ export const fetchMovieCart = async (
 
     if (!response.ok) {
         throw new Error(
-            data.error || "Failed to load cart"
+            data.error ||
+            "Failed to load cart"
         );
     }
 
@@ -201,13 +221,34 @@ export const fetchMovieCart = async (
             seat_number: string;
             ticket_type: string;
             price: number;
+
+            movie_title: string | null;
+            showtime: string | null;
+
         }): CartItem => ({
+
             id: ticket.id,
-            showtimeId: ticket.showtime_id,
-            seatId: ticket.seat_id,
-            seatNumber: ticket.seat_number,
-            ticketType: ticket.ticket_type,
-            price: ticket.price,
+
+            showtimeId:
+                ticket.showtime_id,
+
+            seatId:
+                ticket.seat_id,
+
+            seatNumber:
+                ticket.seat_number,
+
+            ticketType:
+                ticket.ticket_type,
+
+            price:
+                ticket.price,
+
+            movieTitle:
+                ticket.movie_title ?? null,
+
+            showtime:
+                ticket.showtime ?? null,
         })
     );
 };
@@ -217,10 +258,12 @@ export const removeMovieFromCart = async (
     userId: number,
     ticketId: number
 ): Promise<void> => {
+
     const response = await apiFetch(
         `/api/cart/${userId}/remove-seat`,
         {
             method: "DELETE",
+
             body: JSON.stringify({
                 ticket_id: ticketId,
             }),
@@ -231,10 +274,13 @@ export const removeMovieFromCart = async (
 
     if (!response.ok) {
         throw new Error(
-            data.error || "Failed to remove seat"
+            data.error ||
+            "Failed to remove seat"
         );
     }
 };
+
+
 export interface CheckoutTotal {
     subtotal: number;
     tax: number;
@@ -242,12 +288,18 @@ export interface CheckoutTotal {
     total: number;
 }
 
+
 export interface CheckoutResult {
+
     message: string;
 
     order: {
         id: number;
-        customer_id: number;
+
+        // Nullable because guest checkout
+        // does not have a customer ID.
+        customer_id: number | null;
+
         total_amount: number;
         order_status: string;
         created_at: string;
@@ -268,6 +320,7 @@ export interface CheckoutResult {
     }[];
 }
 
+
 export const fetchCheckoutTotal = async (
     userId: number
 ): Promise<CheckoutTotal> => {
@@ -280,12 +333,14 @@ export const fetchCheckoutTotal = async (
 
     if (!response.ok) {
         throw new Error(
-            data.error || "Failed to calculate checkout total"
+            data.error ||
+            "Failed to calculate checkout total"
         );
     }
 
     return data;
 };
+
 
 export const checkoutCart = async (
     userId: number,
@@ -309,40 +364,64 @@ export const checkoutCart = async (
 
     if (!response.ok) {
         throw new Error(
-            data.error || "Payment failed"
+            data.error ||
+            "Payment failed"
         );
     }
 
     return data;
 };
-export const fetchMovieReports = async (): Promise<MovieReportRow[]> => {
-    return [];
-};
+
+
+export const fetchMovieReports =
+    async (): Promise<MovieReportRow[]> => {
+
+        return [];
+    };
+
+
 export const fetchUserTickets = async (
     _userId: number | undefined
 ): Promise<MovieTicket[]> => {
+
     return [];
 };
+
 
 export const cancelMovieBooking = async (
     _ticketId: number
 ): Promise<void> => {
-    throw new Error("Cancel booking endpoint not connected yet");
+
+    throw new Error(
+        "Cancel booking endpoint not connected yet"
+    );
 };
+
+
+
+/* =========================================================
+   GUEST CART
+   ========================================================= */
+
 
 const GUEST_CART_KEY = "guestCartId";
 
 
 const createGuestCart = async (): Promise<number> => {
-    const response = await apiFetch("/api/cart/guest", {
-        method: "POST",
-    });
+
+    const response = await apiFetch(
+        "/api/cart/guest",
+        {
+            method: "POST",
+        }
+    );
 
     const data = await response.json();
 
     if (!response.ok) {
         throw new Error(
-            data.error || "Failed to start guest cart"
+            data.error ||
+            "Failed to start guest cart"
         );
     }
 
@@ -355,20 +434,26 @@ const createGuestCart = async (): Promise<number> => {
 };
 
 
-const getOrCreateGuestCartId = async (): Promise<number> => {
-    const existing =
-        localStorage.getItem(GUEST_CART_KEY);
+const getOrCreateGuestCartId =
+    async (): Promise<number> => {
 
-    if (existing) {
-        return Number(existing);
-    }
+        const existing =
+            localStorage.getItem(
+                GUEST_CART_KEY
+            );
 
-    return createGuestCart();
-};
+        if (existing) {
+            return Number(existing);
+        }
+
+        return createGuestCart();
+    };
 
 
 export const hasGuestCart = (): boolean =>
-    localStorage.getItem(GUEST_CART_KEY) !== null;
+    localStorage.getItem(
+        GUEST_CART_KEY
+    ) !== null;
 
 
 export const addSeatToGuestCart = async (
@@ -399,18 +484,16 @@ export const addSeatToGuestCart = async (
         await attemptAdd(cartId);
 
 
+    // Cached cart disappeared after a DB reset.
     if (response.status === 404) {
 
-        // Cached guest cart no longer exists
-        // after a database reset.
         localStorage.removeItem(
             GUEST_CART_KEY
         );
 
-        // Create a fresh guest cart.
-        cartId = await createGuestCart();
+        cartId =
+            await createGuestCart();
 
-        // Retry adding the seat once.
         response =
             await attemptAdd(cartId);
     }
@@ -429,7 +512,6 @@ export const addSeatToGuestCart = async (
         const lowerMessage =
             message.toLowerCase();
 
-
         if (
             lowerMessage.includes(
                 "already booked"
@@ -443,21 +525,33 @@ export const addSeatToGuestCart = async (
             );
         }
 
-
         throw new Error(message);
     }
 
 
     return {
-        id: data.ticket.id,
+
+        id:
+            data.ticket.id,
+
         showtimeId,
+
         seatId,
+
         seatNumber:
             data.ticket.seat_number,
+
         ticketType:
             data.ticket.ticket_type,
+
         price:
             data.ticket.price,
+
+        movieTitle:
+            data.ticket.movie_title ?? null,
+
+        showtime:
+            data.ticket.showtime ?? null,
     };
 };
 
@@ -482,10 +576,9 @@ export const fetchGuestCart =
             );
 
 
+        // Stale cart from before a DB reset.
         if (response.status === 404) {
 
-            // Old cart ID no longer exists
-            // after database reset.
             localStorage.removeItem(
                 GUEST_CART_KEY
             );
@@ -508,24 +601,48 @@ export const fetchGuestCart =
 
         return data.tickets.map(
             (ticket: {
+
                 id: number;
+
                 showtime_id: number;
+
                 seat_id: number;
+
                 seat_number: string;
+
                 ticket_type: string;
+
                 price: number;
+
+                movie_title: string | null;
+
+                showtime: string | null;
+
             }): CartItem => ({
-                id: ticket.id,
+
+                id:
+                    ticket.id,
+
                 showtimeId:
                     ticket.showtime_id,
+
                 seatId:
                     ticket.seat_id,
+
                 seatNumber:
                     ticket.seat_number,
+
                 ticketType:
                     ticket.ticket_type,
+
                 price:
                     ticket.price,
+
+                movieTitle:
+                    ticket.movie_title ?? null,
+
+                showtime:
+                    ticket.showtime ?? null,
             })
         );
     };
@@ -556,7 +673,7 @@ export const removeSeatFromGuestCart =
                     method: "DELETE",
 
                     body: JSON.stringify({
-                        ticket_id: ticketId
+                        ticket_id: ticketId,
                     }),
                 }
             );
@@ -665,9 +782,12 @@ export const checkoutGuestCart = async (
                 method: "POST",
 
                 body: JSON.stringify({
+
                     cart_id:
                         Number(cartId),
+
                     amount,
+
                     payment_method:
                         "Credit Card",
                 }),
@@ -703,6 +823,6 @@ export const checkoutGuestCart = async (
 
     return {
         ...data,
-        guestInfo
+        guestInfo,
     };
 };

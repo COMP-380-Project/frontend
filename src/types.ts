@@ -60,6 +60,8 @@ export interface CartItem {
     seatNumber: string;
     ticketType: string;
     price: number;
+    movieTitle: string | null;
+    showtime: string | null;
 }
 
 export interface MovieReportRow {

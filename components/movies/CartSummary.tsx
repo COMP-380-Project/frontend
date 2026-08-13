@@ -1,5 +1,5 @@
-import {Button} from "../Button";
-import type {CartItem} from "../../src/types";
+import { Button } from "../Button";
+import type { CartItem } from "../../src/types";
 
 interface CartSummaryProps {
     items: CartItem[];
@@ -9,10 +9,10 @@ interface CartSummaryProps {
     onLogin: () => void;
     isProcessing: boolean;
     isAuthenticated: boolean;
-    }
+}
 
-export function CartSummary({items, onRemove, onCheckout, onGuestCheckout, onLogin, isProcessing, isAuthenticated}: CartSummaryProps) {
-    const total = items.reduce((sum, item) => sum + item.price,0);
+export function CartSummary({ items, onRemove, onCheckout, onGuestCheckout, onLogin, isProcessing, isAuthenticated }: CartSummaryProps) {
+    const total = items.reduce((sum, item) => sum + item.price, 0);
     return (
         <div className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl shadow-black/30">
             <div className="mb-4 flex items-center justify-between">
@@ -30,8 +30,23 @@ export function CartSummary({items, onRemove, onCheckout, onGuestCheckout, onLog
                         <div key={item.id} className="rounded-2xl border border-slate-700 bg-slate-950/70 p-4">
                             <div className="flex items-start justify-between gap-4">
                                 <div>
-                                    <h3 className="text-lg font-semibold text-white">Ticket</h3>
-                                    <p className="text-sm text-slate-300">Seat {item.seatNumber}</p>
+                                    <h3 className="text-lg font-semibold text-white">
+                                        {item.movieTitle ?? "Movie Ticket"}
+                                    </h3>
+
+                                    {item.showtime && (
+                                        <p className="text-sm text-slate-300">
+                                            {new Date(item.showtime).toLocaleString()}
+                                        </p>
+                                    )}
+
+                                    <p className="text-sm text-slate-300">
+                                        Seat {item.seatNumber}
+                                    </p>
+
+                                    <p className="text-sm text-amber-300">
+                                        ${item.price.toFixed(2)}
+                                    </p>
                                 </div>
                                 <button
                                     type="button"
