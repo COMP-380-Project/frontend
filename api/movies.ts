@@ -6,7 +6,7 @@ import type {
     SeatData
 } from "../src/types";
 
-import {apiFetch} from "./api";
+import { apiFetch } from "./api";
 
 
 interface BackendShowtime {
@@ -329,15 +329,11 @@ export const cancelMovieBooking = async (
 ): Promise<void> => {
     throw new Error("Cancel booking endpoint not connected yet");
 };
+
 const GUEST_CART_KEY = "guestCartId";
 
-const getOrCreateGuestCartId = async (): Promise<number> => {
-    const existing = localStorage.getItem(GUEST_CART_KEY);
 
-    if (existing) {
-        return Number(existing);
-    }
-
+const createGuestCart = async (): Promise<number> => {
     const response = await apiFetch("/api/cart/guest", {
         method: "POST",
     });
@@ -359,6 +355,18 @@ const getOrCreateGuestCartId = async (): Promise<number> => {
 };
 
 
+const getOrCreateGuestCartId = async (): Promise<number> => {
+    const existing =
+        localStorage.getItem(GUEST_CART_KEY);
+
+    if (existing) {
+        return Number(existing);
+    }
+
+    return createGuestCart();
+};
+
+
 export const hasGuestCart = (): boolean =>
     localStorage.getItem(GUEST_CART_KEY) !== null;
 
@@ -368,145 +376,242 @@ export const addSeatToGuestCart = async (
     seatId: number
 ): Promise<CartItem> => {
 
-    const cartId = await getOrCreateGuestCartId();
+    let cartId =
+        await getOrCreateGuestCartId();
 
-    const response = await apiFetch(
-        `/api/cart/by-id/${cartId}/add-seat`,
-        {
-            method: "POST",
 
-            body: JSON.stringify({
-                showtime_id: showtimeId,
-                seat_id: seatId,
-                ticket_type: "adult",
-            }),
-        }
-    );
+    const attemptAdd = (id: number) =>
+        apiFetch(
+            `/api/cart/by-id/${id}/add-seat`,
+            {
+                method: "POST",
 
-    const data = await response.json();
+                body: JSON.stringify({
+                    showtime_id: showtimeId,
+                    seat_id: seatId,
+                    ticket_type: "adult",
+                }),
+            }
+        );
+
+
+    let response =
+        await attemptAdd(cartId);
+
+
+    if (response.status === 404) {
+
+        // Cached guest cart no longer exists
+        // after a database reset.
+        localStorage.removeItem(
+            GUEST_CART_KEY
+        );
+
+        // Create a fresh guest cart.
+        cartId = await createGuestCart();
+
+        // Retry adding the seat once.
+        response =
+            await attemptAdd(cartId);
+    }
+
+
+    const data =
+        await response.json();
+
 
     if (!response.ok) {
+
         const message =
-            data.error || "Failed to add seat to cart";
+            data.error ||
+            "Failed to add seat to cart";
 
         const lowerMessage =
             message.toLowerCase();
 
+
         if (
-            lowerMessage.includes("already booked") ||
-            lowerMessage.includes("already locked")
+            lowerMessage.includes(
+                "already booked"
+            ) ||
+            lowerMessage.includes(
+                "already locked"
+            )
         ) {
             throw new Error(
                 "Seat no longer available. Please choose another seat."
             );
         }
 
+
         throw new Error(message);
     }
+
 
     return {
         id: data.ticket.id,
         showtimeId,
         seatId,
-        seatNumber: data.ticket.seat_number,
-        ticketType: data.ticket.ticket_type,
-        price: data.ticket.price,
+        seatNumber:
+            data.ticket.seat_number,
+        ticketType:
+            data.ticket.ticket_type,
+        price:
+            data.ticket.price,
     };
 };
 
 
-export const fetchGuestCart = async (): Promise<CartItem[]> => {
+export const fetchGuestCart =
+    async (): Promise<CartItem[]> => {
 
-    const cartId =
-        localStorage.getItem(GUEST_CART_KEY);
-
-    if (!cartId) {
-        return [];
-    }
-
-    const response = await apiFetch(
-        `/api/cart/by-id/${cartId}`
-    );
-
-    if (response.status === 404) {
-        return [];
-    }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-        throw new Error(
-            data.error || "Failed to load cart"
-        );
-    }
-
-    return data.tickets.map(
-        (ticket: {
-            id: number;
-            showtime_id: number;
-            seat_id: number;
-            seat_number: string;
-            ticket_type: string;
-            price: number;
-        }): CartItem => ({
-            id: ticket.id,
-            showtimeId: ticket.showtime_id,
-            seatId: ticket.seat_id,
-            seatNumber: ticket.seat_number,
-            ticketType: ticket.ticket_type,
-            price: ticket.price,
-        })
-    );
-};
+        const cartId =
+            localStorage.getItem(
+                GUEST_CART_KEY
+            );
 
 
-export const removeSeatFromGuestCart = async (
-    ticketId: number
-): Promise<void> => {
-
-    const cartId =
-        localStorage.getItem(GUEST_CART_KEY);
-
-    if (!cartId) {
-        throw new Error("No active guest cart");
-    }
-
-    const response = await apiFetch(
-        `/api/cart/by-id/${cartId}/remove-seat`,
-        {
-            method: "DELETE",
-
-            body: JSON.stringify({
-                ticket_id: ticketId,
-            }),
+        if (!cartId) {
+            return [];
         }
-    );
 
-    const data = await response.json();
 
-    if (!response.ok) {
-        throw new Error(
-            data.error || "Failed to remove seat"
+        const response =
+            await apiFetch(
+                `/api/cart/by-id/${cartId}`
+            );
+
+
+        if (response.status === 404) {
+
+            // Old cart ID no longer exists
+            // after database reset.
+            localStorage.removeItem(
+                GUEST_CART_KEY
+            );
+
+            return [];
+        }
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Failed to load cart"
+            );
+        }
+
+
+        return data.tickets.map(
+            (ticket: {
+                id: number;
+                showtime_id: number;
+                seat_id: number;
+                seat_number: string;
+                ticket_type: string;
+                price: number;
+            }): CartItem => ({
+                id: ticket.id,
+                showtimeId:
+                    ticket.showtime_id,
+                seatId:
+                    ticket.seat_id,
+                seatNumber:
+                    ticket.seat_number,
+                ticketType:
+                    ticket.ticket_type,
+                price:
+                    ticket.price,
+            })
         );
-    }
-};
+    };
+
+
+export const removeSeatFromGuestCart =
+    async (
+        ticketId: number
+    ): Promise<void> => {
+
+        const cartId =
+            localStorage.getItem(
+                GUEST_CART_KEY
+            );
+
+
+        if (!cartId) {
+            throw new Error(
+                "No active guest cart"
+            );
+        }
+
+
+        const response =
+            await apiFetch(
+                `/api/cart/by-id/${cartId}/remove-seat`,
+                {
+                    method: "DELETE",
+
+                    body: JSON.stringify({
+                        ticket_id: ticketId
+                    }),
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "Failed to remove seat"
+            );
+        }
+    };
 
 
 export const fetchGuestCheckoutTotal =
     async (): Promise<CheckoutTotal> => {
 
         const cartId =
-            localStorage.getItem(GUEST_CART_KEY);
+            localStorage.getItem(
+                GUEST_CART_KEY
+            );
+
 
         if (!cartId) {
-            throw new Error("No active guest cart");
+            throw new Error(
+                "Your cart could not be found. Please go back and add your seats again."
+            );
         }
 
-        const response = await apiFetch(
-            `/api/cart/by-id/${cartId}/calculate-total`
-        );
 
-        const data = await response.json();
+        const response =
+            await apiFetch(
+                `/api/cart/by-id/${cartId}/calculate-total`
+            );
+
+
+        if (response.status === 404) {
+
+            localStorage.removeItem(
+                GUEST_CART_KEY
+            );
+
+            throw new Error(
+                "Your cart could not be found. Please go back and add your seats again."
+            );
+        }
+
+
+        const data =
+            await response.json();
+
 
         if (!response.ok) {
             throw new Error(
@@ -514,6 +619,7 @@ export const fetchGuestCheckoutTotal =
                 "Failed to calculate checkout total"
             );
         }
+
 
         return data;
     };
@@ -540,34 +646,60 @@ export const checkoutGuestCart = async (
 ): Promise<GuestCheckoutResult> => {
 
     const cartId =
-        localStorage.getItem(GUEST_CART_KEY);
+        localStorage.getItem(
+            GUEST_CART_KEY
+        );
+
 
     if (!cartId) {
-        throw new Error("No active guest cart");
-    }
-
-    const response = await apiFetch(
-        "/api/payment/checkout",
-        {
-            method: "POST",
-
-            body: JSON.stringify({
-                cart_id: Number(cartId),
-                amount,
-                payment_method: "Credit Card",
-            }),
-        }
-    );
-
-    const data = await response.json();
-
-    if (!response.ok) {
         throw new Error(
-            data.error || "Payment failed"
+            "Your cart could not be found. Please go back and add your seats again."
         );
     }
 
-    localStorage.removeItem(GUEST_CART_KEY);
+
+    const response =
+        await apiFetch(
+            "/api/payment/checkout",
+            {
+                method: "POST",
+
+                body: JSON.stringify({
+                    cart_id:
+                        Number(cartId),
+                    amount,
+                    payment_method:
+                        "Credit Card",
+                }),
+            }
+        );
+
+
+    const data =
+        await response.json();
+
+
+    if (!response.ok) {
+
+        if (
+            response.status === 404
+        ) {
+            localStorage.removeItem(
+                GUEST_CART_KEY
+            );
+        }
+
+        throw new Error(
+            data.error ||
+            "Payment failed"
+        );
+    }
+
+
+    localStorage.removeItem(
+        GUEST_CART_KEY
+    );
+
 
     return {
         ...data,
