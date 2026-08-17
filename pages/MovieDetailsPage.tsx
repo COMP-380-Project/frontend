@@ -253,9 +253,10 @@ export function MovieDetailsPage() {
                                                 selectedSeatId === seat.id;
 
                                             const unavailable =
+                                                seat.isBooked === true ||
+                                                seat.isLocked === true ||
                                                 seat.status === "booked" ||
                                                 seat.status === "locked";
-
                                             return (
                                                 <button
                                                     key={seat.id}
@@ -267,13 +268,11 @@ export function MovieDetailsPage() {
                                                     className={[
                                                         "w-24 rounded-md border py-2 text-xs font-semibold transition",
 
-                                                        isSelected
-                                                            ? "border-amber-300 bg-amber-300 text-slate-950"
-                                                            : "border-slate-700 bg-slate-800 text-slate-200 hover:border-amber-300/70",
-
                                                         unavailable
-                                                        ? "cursor-not-allowed border-rose-400/60 bg-rose-500/20 text-rose-200"
-                                                        : ""
+                                                            ? "cursor-not-allowed border-rose-400/60 bg-rose-500/20 text-rose-200"
+                                                            : isSelected
+                                                                ? "border-amber-300 bg-amber-300 text-slate-950"
+                                                                : "border-slate-700 bg-slate-800 text-slate-200 hover:border-amber-300/70"
                                                     ].join(" ")}
                                                 >
                                                     {seat.seatNumber}
