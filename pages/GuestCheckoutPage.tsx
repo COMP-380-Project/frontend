@@ -1,214 +1,308 @@
-import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import {Button} from "../components/Button";
-import {ErrorMessage} from "../components/ErrorMessage";
-import {useAsync} from "../hooks/useAsync";
+import { Button } from "../components/Button";
+import { ErrorMessage } from "../components/ErrorMessage";
+import { useAsync } from "../hooks/useAsync";
 
 import {
-    checkoutGuestCart,
-    fetchGuestCheckoutTotal
+  checkoutGuestCart,
+  fetchGuestCheckoutTotal,
 } from "../api/movies";
 
 import type {
-    GuestCheckoutResult,
-    GuestInfo
+  GuestCheckoutResult,
+  GuestInfo,
 } from "../api/movies";
 
-
 export function GuestCheckoutPage() {
+  const navigate = useNavigate();
 
-    const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
-    const [firstName, setFirstName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [email, setEmail] = useState("");
-    const [phone, setPhone] = useState("");
+  const [nameOnCard, setNameOnCard] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiration, setExpiration] = useState("");
+  const [cvv, setCvv] = useState("");
 
+  const {
+    run: checkoutAction,
+    loading: processing,
+    error: checkoutError,
+  } = useAsync<GuestCheckoutResult, [GuestInfo]>({
+    action: async (guestInfo: GuestInfo) => {
+      const total = await fetchGuestCheckoutTotal();
 
-    const {
-        run: checkoutAction,
-        loading: processing,
-        error: checkoutError
-    } = useAsync<GuestCheckoutResult, [GuestInfo]>({
+      return checkoutGuestCart(
+        total.total,
+        guestInfo
+      );
+    },
 
-        action: async (guestInfo: GuestInfo) => {
-            const total = await fetchGuestCheckoutTotal();
-
-            return checkoutGuestCart(
-                total.total,
-                guestInfo
-            );
+    onSuccess: result => {
+      navigate("/payment-complete", {
+        state: {
+          order: result.order,
+          payment: result.payment,
+          tickets: result.tickets,
+          guestInfo: result.guestInfo,
         },
+      });
+    },
 
-        onSuccess: result => {
-            navigate("/payment-complete", {
-                state: {
-                    order: result.order,
-                    payment: result.payment,
-                    tickets: result.tickets,
-                    guestInfo: result.guestInfo,
-                }
-            });
-        },
+    errorMessage: "Payment could not be completed",
+  });
 
-        errorMessage: "Payment could not be completed"
+  const handleSubmit = (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    void checkoutAction({
+      firstName,
+      lastName,
+      email,
+      phone,
     });
+  };
 
+  return (
+    <section className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-xl shadow-black/30">
+      <h1 className="text-3xl font-semibold text-white">
+        Guest Checkout
+      </h1>
 
-    const handleSubmit = (
-        event: React.FormEvent<HTMLFormElement>
-    ) => {
-        event.preventDefault();
+      <p className="mt-2 text-slate-300">
+        Please enter the following information:
+      </p>
 
-        void checkoutAction({
-            firstName,
-            lastName,
-            email,
-            phone,
-        });
-    };
+      {checkoutError && (
+        <div className="mt-5">
+          <ErrorMessage error={checkoutError} />
+        </div>
+      )}
 
-
-    return (
-        <section className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-xl shadow-black/30">
-
-            <h1 className="text-3xl font-semibold text-white">
-                Guest Checkout
-            </h1>
-
-            <p className="mt-2 text-slate-300">
-                Please enter the following information:
-            </p>
-
-
-            {checkoutError && (
-                <div className="mt-5">
-                    <ErrorMessage error={checkoutError} />
-                </div>
-            )}
-
-
-            <form
-                className="mt-8 space-y-5"
-                onSubmit={handleSubmit}
+      <form
+        className="mt-8 space-y-5"
+        onSubmit={handleSubmit}
+      >
+        <div className="grid gap-5 sm:grid-cols-2">
+          <div>
+            <label
+              className="mb-2 block text-sm font-medium text-slate-200"
+              htmlFor="firstName"
             >
+              First name
+            </label>
 
-                <div className="grid gap-5 sm:grid-cols-2">
+            <input
+              id="firstName"
+              type="text"
+              value={firstName}
+              onChange={event =>
+                setFirstName(event.target.value)
+              }
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+            />
+          </div>
 
-                    <div>
-                        <label
-                            className="mb-2 block text-sm font-medium text-slate-200"
-                            htmlFor="firstName"
-                        >
-                            First name
-                        </label>
+          <div>
+            <label
+              className="mb-2 block text-sm font-medium text-slate-200"
+              htmlFor="lastName"
+            >
+              Last name
+            </label>
 
-                        <input
-                            id="firstName"
-                            type="text"
-                            value={firstName}
-                            onChange={event =>
-                                setFirstName(event.target.value)
-                            }
-                            required
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
-                        />
-                    </div>
+            <input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={event =>
+                setLastName(event.target.value)
+              }
+              required
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+            />
+          </div>
+        </div>
 
+        <div>
+          <label
+            className="mb-2 block text-sm font-medium text-slate-200"
+            htmlFor="email"
+          >
+            Email
+          </label>
 
-                    <div>
-                        <label
-                            className="mb-2 block text-sm font-medium text-slate-200"
-                            htmlFor="lastName"
-                        >
-                            Last name
-                        </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={event =>
+              setEmail(event.target.value)
+            }
+            required
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+          />
+        </div>
 
-                        <input
-                            id="lastName"
-                            type="text"
-                            value={lastName}
-                            onChange={event =>
-                                setLastName(event.target.value)
-                            }
-                            required
-                            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
-                        />
-                    </div>
+        <div>
+          <label
+            className="mb-2 block text-sm font-medium text-slate-200"
+            htmlFor="phone"
+          >
+            Phone number
+          </label>
 
-                </div>
+          <input
+            id="phone"
+            type="tel"
+            value={phone}
+            onChange={event =>
+              setPhone(event.target.value)
+            }
+            className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+          />
+        </div>
 
+        <div className="border-t border-white/10 pt-5">
+          <p className="mb-4 text-sm font-medium text-slate-200">
+            Payment information
+          </p>
 
-                <div>
-                    <label
-                        className="mb-2 block text-sm font-medium text-slate-200"
-                        htmlFor="email"
-                    >
-                        Email
-                    </label>
+          <div className="space-y-5">
+            <div>
+              <label
+                className="mb-2 block text-sm font-medium text-slate-200"
+                htmlFor="nameOnCard"
+              >
+                Name on card
+              </label>
 
-                    <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={event =>
-                            setEmail(event.target.value)
-                        }
-                        required
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
-                    />
-                </div>
+              <input
+                id="nameOnCard"
+                type="text"
+                required
+                value={nameOnCard}
+                onChange={event =>
+                  setNameOnCard(event.target.value)
+                }
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+              />
+            </div>
 
+            <div>
+              <label
+                className="mb-2 block text-sm font-medium text-slate-200"
+                htmlFor="cardNumber"
+              >
+                Card number
+              </label>
 
-                <div>
-                    <label
-                        className="mb-2 block text-sm font-medium text-slate-200"
-                        htmlFor="phone"
-                    >
-                        Phone number
-                    </label>
+              <input
+                id="cardNumber"
+                type="text"
+                inputMode="numeric"
+                required
+                maxLength={19}
+                placeholder="1234 5678 9012 3456"
+                value={cardNumber}
+                onChange={event => {
+                  const numbers = event.target.value
+                    .replace(/\D/g, "")
+                    .slice(0, 16);
 
-                    <input
-                        id="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={event =>
-                            setPhone(event.target.value)
-                        }
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
-                    />
-                </div>
+                  const formatted = numbers
+                    .replace(/(.{4})/g, "$1 ")
+                    .trim();
 
+                  setCardNumber(formatted);
+                }}
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+              />
+            </div>
 
-                <div className="grid gap-3 pt-3 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label
+                  className="mb-2 block text-sm font-medium text-slate-200"
+                  htmlFor="expiration"
+                >
+                  Expiration
+                </label>
 
-                    <Button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full justify-center"
-                    >
-                        {processing
-                            ? "Processing..."
-                            : "Complete Booking"}
-                    </Button>
+                <input
+                  id="expiration"
+                  type="text"
+                  required
+                  maxLength={5}
+                  placeholder="MM/YY"
+                  value={expiration}
+                  onChange={event =>
+                    setExpiration(event.target.value)
+                  }
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+                />
+              </div>
 
+              <div>
+                <label
+                  className="mb-2 block text-sm font-medium text-slate-200"
+                  htmlFor="cvv"
+                >
+                  CVV
+                </label>
 
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        className="w-full justify-center"
-                        onClick={() =>
-                            navigate("/cart")
-                        }
-                    >
-                        Back to Cart
-                    </Button>
+                <input
+                  id="cvv"
+                  type="password"
+                  inputMode="numeric"
+                  required
+                  maxLength={4}
+                  placeholder="123"
+                  value={cvv}
+                  onChange={event =>
+                    setCvv(
+                      event.target.value.replace(/\D/g, "")
+                    )
+                  }
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-3 text-white outline-none transition focus:border-amber-300"
+                />
+              </div>
+            </div>
 
-                </div>
+            <p className="text-xs text-slate-400">
+              Demo payment only.
+            </p>
+          </div>
+        </div>
 
-            </form>
+        <div className="grid gap-3 pt-3 sm:grid-cols-2">
+          <Button
+            type="submit"
+            disabled={processing}
+            className="w-full justify-center"
+          >
+            {processing
+              ? "Processing..."
+              : "Complete Booking"}
+          </Button>
 
-        </section>
-    );
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full justify-center"
+            onClick={() => navigate("/cart")}
+          >
+            Back to Cart
+          </Button>
+        </div>
+      </form>
+    </section>
+  );
 }

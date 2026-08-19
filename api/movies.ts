@@ -6,7 +6,7 @@ import type {
     SeatData
 } from "../src/types";
 
-import {apiFetch} from "./api";
+import { apiFetch } from "./api";
 
 
 interface BackendShowtime {
@@ -402,10 +402,67 @@ export const fetchMovieReports = async (
 };
 
 export const fetchUserTickets = async (
-    _userId: number | undefined
+    userId: number | undefined
 ): Promise<MovieTicket[]> => {
+    if (!userId) {
+        return [];
+    }
 
-    return [];
+    const response = await apiFetch(
+        `/api/orders/${userId}/tickets`
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || "Failed to load bookings"
+        );
+    }
+
+    return data.map(
+        (row: {
+            ticket_id: number;
+            order_id: number;
+            movie_id: number | null;
+            showtime_id: number;
+            seat_number: string;
+            booked_at: string;
+            status: string;
+            movie: {
+                id: number;
+                title: string;
+                description: string;
+                genre?: string;
+                duration?: number;
+                rating?: number;
+                poster_url?: string;
+                cast?: string;
+            } | null;
+        }): MovieTicket => ({
+            ticketId: row.ticket_id,
+            movieId: row.movie_id ?? 0,
+            showtimeId: row.showtime_id,
+            seatNumber: row.seat_number,
+            bookedAt: row.booked_at,
+            status: row.status as "confirmed" | "cancelled",
+
+            movie: {
+                id: row.movie?.id ?? 0,
+                name: row.movie?.title ?? "Unknown",
+                description: row.movie?.description ?? "",
+                genre: row.movie?.genre,
+                durationMinutes: row.movie?.duration,
+                rating:
+                    row.movie?.rating !== undefined
+                        ? String(row.movie.rating)
+                        : undefined,
+                posterUrl: row.movie?.poster_url,
+                cast: row.movie?.cast,
+                showtimes: [],
+            },
+        })
+    );
 };
 
 
@@ -417,12 +474,6 @@ export const cancelMovieBooking = async (
         "Cancel booking endpoint not connected yet"
     );
 };
-
-
-
-/* =========================================================
-   GUEST CART
-   ========================================================= */
 
 
 const GUEST_CART_KEY = "guestCartId";
@@ -597,7 +648,6 @@ export const fetchGuestCart =
             );
 
 
-        // Stale cart from before a DB reset.
         if (response.status === 404) {
 
             localStorage.removeItem(
