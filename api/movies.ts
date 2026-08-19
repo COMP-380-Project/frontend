@@ -373,12 +373,33 @@ export const checkoutCart = async (
 };
 
 
-export const fetchMovieReports =
-    async (): Promise<MovieReportRow[]> => {
+export const fetchMovieReports = async (
+    customerId: number
+): Promise<MovieReportRow[]> => {
+    const response = await apiFetch(
+        `/api/admin/reports?customer_id=${customerId}`
+    );
 
-        return [];
-    };
+    const data = await response.json();
 
+    if (!response.ok) {
+        throw new Error(data.error || "Failed to load reports");
+    }
+
+    return data.map(
+        (row: {
+            movie_id: number;
+            movie_name: string;
+            bookings: number;
+            revenue: number;
+        }): MovieReportRow => ({
+            movieId: row.movie_id,
+            movieName: row.movie_name,
+            bookings: row.bookings,
+            revenue: row.revenue,
+        })
+    );
+};
 
 export const fetchUserTickets = async (
     _userId: number | undefined

@@ -1,11 +1,20 @@
+import {useCallback} from "react";
 import {useFetch} from "../hooks/useFetch";
+import {useAuth} from "../contexts/AuthContext";
 import {LoadingMessage} from "../components/LoadingMessage";
 import {ErrorMessage} from "../components/ErrorMessage";
 import {fetchMovieReports} from "../api/movies";
 import type {MovieReportRow} from "../src/types";
 
 export function ReportsPage() {
-    const {data, loading, error} = useFetch<MovieReportRow[]>(fetchMovieReports);
+    const {auth} = useAuth();
+
+    const getReports = useCallback(
+        () => fetchMovieReports(auth!.userId),
+        [auth]
+    );
+
+    const {data, loading, error} = useFetch<MovieReportRow[]>(getReports);
 
     if (loading) {
         return <LoadingMessage message="Loading reports..." />;
