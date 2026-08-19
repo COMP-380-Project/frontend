@@ -1,19 +1,19 @@
-import {useCallback} from "react";
-import {CalendarIcon, MapPinIcon, TicketIcon} from "lucide-react";
-import {useAuth} from "../contexts/AuthContext";
-import {useAsync} from "../hooks/useAsync";
-import {useFetch} from "../hooks/useFetch";
-import {cancelMovieBooking, fetchUserTickets} from "../api/movies";
-import type {MovieTicket} from "../src/types";
-import {LoadingMessage} from "../components/LoadingMessage";
-import {ErrorMessage} from "../components/ErrorMessage";
+import { useCallback } from "react";
+import { CalendarIcon, FilmIcon, MapPinIcon, TicketIcon } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useAsync } from "../hooks/useAsync";
+import { useFetch } from "../hooks/useFetch";
+import { cancelMovieBooking, fetchUserTickets } from "../api/movies";
+import type { MovieTicket } from "../src/types";
+import { LoadingMessage } from "../components/LoadingMessage";
+import { ErrorMessage } from "../components/ErrorMessage";
 
 export function BookingsPage() {
-    const {auth} = useAuth();
+    const { auth } = useAuth();
     const getTickets = useCallback(() => fetchUserTickets(auth?.userId), [auth?.userId]);
-    const {data, loading, error, refetch} = useFetch<MovieTicket[]>(getTickets);
+    const { data, loading, error, refetch } = useFetch<MovieTicket[]>(getTickets);
 
-    const {run: cancelAction, error: cancelError} = useAsync<void, [number]>({
+    const { run: cancelAction, error: cancelError } = useAsync<void, [number]>({
         action: cancelMovieBooking,
         onSuccess: () => void refetch(),
         errorMessage: "Failed to cancel booking",
@@ -41,11 +41,21 @@ export function BookingsPage() {
                     {tickets.map(ticket => (
                         <article key={ticket.ticketId} className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/70 shadow-lg shadow-black/30">
                             <div
-                                className="h-36 bg-cover bg-center"
-                                style={{
-                                    backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.2), rgba(2,6,23,0.8)), url(${ticket.movie.posterUrl || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=900&q=80"})`,
-                                }}
-                            />
+                                className="flex h-36 items-center justify-center bg-gradient-to-br from-slate-800 to-slate-950"
+                                style={
+                                    ticket.movie.posterUrl
+                                        ? {
+                                            backgroundImage: `linear-gradient(180deg, rgba(2,6,23,0.2), rgba(2,6,23,0.8)), url(${ticket.movie.posterUrl})`,
+                                            backgroundSize: "cover",
+                                            backgroundPosition: "center",
+                                        }
+                                        : undefined
+                                }
+                            >
+                                {!ticket.movie.posterUrl && (
+                                    <FilmIcon className="h-10 w-10 text-slate-600" />
+                                )}
+                            </div>
                             <div className="space-y-2 p-5 text-slate-100">
                                 <h2 className="text-xl font-semibold">{ticket.movie.name}</h2>
                                 <div className="flex items-center gap-2 text-sm text-slate-300">

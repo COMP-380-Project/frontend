@@ -457,7 +457,7 @@ export const fetchUserTickets = async (
                     row.movie?.rating !== undefined
                         ? String(row.movie.rating)
                         : undefined,
-                posterUrl: row.movie?.poster_url,
+                posterUrl: undefined,
                 cast: row.movie?.cast,
                 showtimes: [],
             },
